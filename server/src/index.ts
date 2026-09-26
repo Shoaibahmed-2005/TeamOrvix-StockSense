@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
-// import { authRouter } from './routes/auth.js';
+import { authRouter } from './routes/auth.js';
 // import { warehousesRouter } from './routes/warehouses.js';
 // import { locationsRouter } from './routes/locations.js';
 // import { contactsRouter } from './routes/contacts.js';
@@ -40,7 +40,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ─── Public routes ────────────────────────────────────────────────────────────
-// app.use('/api/auth', authRouter);
+app.use('/api/auth', authRouter);
 
 // ─── Protected routes ─────────────────────────────────────────────────────────
 app.use('/api', requireAuth);
@@ -62,10 +62,11 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 // ─── Error handler ────────────────────────────────────────────────────────────
 app.use(errorHandler);
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
-
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Stocksense server running on http://localhost:${PORT}`);
-});
+if (!process.env.VITEST) {
+  const PORT = parseInt(process.env.PORT || '3001', 10);
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Stocksense server running on http://localhost:${PORT}`);
+  });
+}
 
 export default app;
