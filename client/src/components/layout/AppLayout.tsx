@@ -5,9 +5,7 @@ import {
   Package, 
   ArrowRightLeft, 
   Settings, 
-  LogOut, 
-  Moon,
-  Sun,
+  LogOut,
   Menu,
   Box,
   Truck,
@@ -19,6 +17,14 @@ import {
 import { Sidebar, SidebarHeader, SidebarNav, SidebarSection, SidebarItem, SidebarNested } from "@/components/ui/sidebar"
 import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
@@ -112,36 +118,35 @@ export default function AppLayout() {
         </SidebarNav>
 
         <div className="border-t p-2">
-          {!collapsed ? (
-            <div className="flex flex-col gap-2 p-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 truncate">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs">
-                    {user?.fullName?.charAt(0).toUpperCase()}
-                  </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className={`w-full flex items-center justify-between py-2 hover:bg-accent rounded-md ${collapsed ? 'px-0 justify-center' : 'px-2'}`}>
+              <div className="flex items-center gap-2 truncate">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs shrink-0">
+                  {user?.fullName?.charAt(0).toUpperCase()}
+                </div>
+                {!collapsed && (
                   <div className="truncate text-sm font-medium">
                     {user?.fullName}
                   </div>
-                </div>
-                <Button variant="ghost" size="icon" onClick={toggleTheme}>
-                  {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                </Button>
+                )}
               </div>
-              <Button variant="outline" size="sm" onClick={logout} className="w-full justify-start text-muted-foreground mt-2">
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => window.location.href = '/settings/profile'}>
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleTheme}>
+                {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 items-center">
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
-                {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={logout} className="text-muted-foreground">
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </Sidebar>
 
