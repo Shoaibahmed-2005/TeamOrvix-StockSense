@@ -16,7 +16,9 @@ import ReceiptForm from "./pages/operations/ReceiptForm"
 import DeliveriesList from "./pages/operations/DeliveriesList"
 import DeliveryForm from "./pages/operations/DeliveryForm"
 import InternalTransfersList from "./pages/operations/InternalTransfersList"
+import InternalTransferForm from "./pages/operations/InternalTransferForm"
 import AdjustmentsList from "./pages/operations/AdjustmentsList"
+import AdjustmentForm from "./pages/operations/AdjustmentForm"
 import MoveHistory from "./pages/operations/MoveHistory"
 import { io } from "socket.io-client"
 import { useEffect } from "react"
@@ -74,7 +76,9 @@ function App() {
             <Route path="deliveries" element={<DeliveriesList />} />
             <Route path="deliveries/:id" element={<DeliveryForm />} />
             <Route path="internal" element={<InternalTransfersList />} />
+            <Route path="internal/:id" element={<InternalTransferForm />} />
             <Route path="adjustments" element={<AdjustmentsList />} />
+            <Route path="adjustments/:id" element={<AdjustmentForm />} />
             <Route path="history" element={<MoveHistory />} />
             <Route path="settings/*" element={<div>Settings</div>} />
           </Route>
