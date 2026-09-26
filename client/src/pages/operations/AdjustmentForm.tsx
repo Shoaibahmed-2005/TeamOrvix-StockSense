@@ -78,6 +78,15 @@ export default function AdjustmentForm() {
     }
   }, [operationData])
 
+  useEffect(() => {
+    if (isNew && locations.length > 0 && !op.destLocationId) {
+      const internal = locations.filter((l: any) => l.type === 'INTERNAL')
+      if (internal.length > 0) {
+        setOp((prev: any) => ({ ...prev, destLocationId: internal[0].id }))
+      }
+    }
+  }, [isNew, locations, op.destLocationId])
+
   const handleSave = async () => {
     try {
       if (isNew) {

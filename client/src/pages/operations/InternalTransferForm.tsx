@@ -79,6 +79,19 @@ export default function InternalTransferForm() {
     }
   }, [operationData])
 
+  useEffect(() => {
+    if (isNew && locations.length > 0 && !op.sourceLocationId) {
+      const internal = locations.filter((l: any) => l.type === 'INTERNAL')
+      if (internal.length > 0) {
+        setOp((prev: any) => ({ 
+          ...prev, 
+          sourceLocationId: prev.sourceLocationId || internal[0].id,
+          destLocationId: prev.destLocationId || (internal.length > 1 ? internal[1].id : internal[0].id)
+        }))
+      }
+    }
+  }, [isNew, locations, op.sourceLocationId])
+
   const handleSave = async () => {
     try {
       if (isNew) {

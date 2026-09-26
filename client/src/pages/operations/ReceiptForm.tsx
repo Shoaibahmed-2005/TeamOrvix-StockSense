@@ -85,6 +85,15 @@ export default function ReceiptForm() {
     }
   }, [operationData])
 
+  useEffect(() => {
+    if (isNew && locations.length > 0 && !op.destLocationId) {
+      const internal = locations.filter((l: any) => l.type === 'INTERNAL')
+      if (internal.length > 0) {
+        setOp((prev: any) => ({ ...prev, destLocationId: internal[0].id }))
+      }
+    }
+  }, [isNew, locations, op.destLocationId])
+
   const handleSave = async () => {
     try {
       if (isNew) {
@@ -221,7 +230,7 @@ export default function ReceiptForm() {
                 <SelectValue placeholder="Select Vendor" />
               </SelectTrigger>
               <SelectContent>
-                {contacts.filter((c: any) => c.type === 'VENDOR').map((c: any) => (
+                {contacts.filter((c: any) => ['VENDOR', 'BOTH'].includes(c.type)).map((c: any) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>

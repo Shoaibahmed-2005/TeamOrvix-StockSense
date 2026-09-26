@@ -87,6 +87,15 @@ export default function DeliveryForm() {
     }
   }, [operationData])
 
+  useEffect(() => {
+    if (isNew && locations.length > 0 && !op.sourceLocationId) {
+      const internal = locations.filter((l: any) => l.type === 'INTERNAL')
+      if (internal.length > 0) {
+        setOp((prev: any) => ({ ...prev, sourceLocationId: internal[0].id }))
+      }
+    }
+  }, [isNew, locations, op.sourceLocationId])
+
   const handleSave = async () => {
     try {
       if (isNew) {
@@ -253,7 +262,7 @@ export default function DeliveryForm() {
                 <SelectValue placeholder="Select Customer" />
               </SelectTrigger>
               <SelectContent>
-                {contacts.filter((c: any) => c.type === 'CUSTOMER').map((c: any) => (
+                {contacts.filter((c: any) => ['CUSTOMER', 'BOTH'].includes(c.type)).map((c: any) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
