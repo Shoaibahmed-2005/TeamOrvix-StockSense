@@ -7,6 +7,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword"
 import { AuthProvider, useAuth } from "./lib/auth"
 
 import AppLayout from "./components/layout/AppLayout"
+import Dashboard from "./pages/dashboard/Dashboard"
 import ProductsList from "./pages/products/ProductsList"
 import CategoriesList from "./pages/products/CategoriesList"
 import StockList from "./pages/products/StockList"
@@ -14,6 +15,7 @@ import ReceiptsList from "./pages/operations/ReceiptsList"
 import DeliveriesList from "./pages/operations/DeliveriesList"
 import InternalTransfersList from "./pages/operations/InternalTransfersList"
 import AdjustmentsList from "./pages/operations/AdjustmentsList"
+import MoveHistory from "./pages/operations/MoveHistory"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -34,7 +36,7 @@ function App() {
           </Route>
           
           <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route index element={<div>Dashboard</div>} />
+            <Route index element={<Dashboard />} />
             <Route path="products" element={<ProductsList />} />
             <Route path="stock" element={<StockList />} />
             <Route path="categories" element={<CategoriesList />} />
@@ -42,7 +44,7 @@ function App() {
             <Route path="deliveries" element={<DeliveriesList />} />
             <Route path="internal" element={<InternalTransfersList />} />
             <Route path="adjustments" element={<AdjustmentsList />} />
-            <Route path="history" element={<div>Move History</div>} />
+            <Route path="history" element={<MoveHistory />} />
             <Route path="settings/*" element={<div>Settings</div>} />
           </Route>
           

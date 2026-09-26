@@ -53,8 +53,10 @@
 - ✅ Adjustments list view
 - ✅ Validate actions connected to API
 
-## ⏳ M7 — Move History + Dashboard + Notifications
-(Not started)
+## ✅ M7 — Move History + Dashboard + Notifications
+- ✅ Move History view
+- ✅ Dashboard overview (stats)
+- ⏳ Real-time notifications (moved to M8)
 
 ## ⏳ M8 — Real-time Sync
 (Not started)
