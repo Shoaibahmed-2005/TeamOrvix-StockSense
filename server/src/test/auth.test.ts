@@ -100,7 +100,7 @@ describe('GET /api/auth/me', () => {
 
     const meRes = await request(app)
       .get('/api/auth/me')
-      .set('Cookie', cookie)
+      .set('Cookie', cookie as string[])
       .expect(200);
 
     expect(meRes.body.user.email).toBe(BASE_USER.email);

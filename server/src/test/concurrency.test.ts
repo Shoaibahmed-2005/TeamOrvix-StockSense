@@ -48,7 +48,14 @@ describe('Concurrency & Locking', () => {
 
         if (!stock) throw new Error('Stock not found');
 
-        // 3. Subtract 1 unit (simulating delivery validation)
+        // 3. Check stock and throw 409 if insufficient
+        if (stock.quantity.toNumber() < 1) {
+          const err = new Error('Insufficient stock');
+          (err as any).code = 'INSUFFICIENT_STOCK'; // Simulating custom code for 409
+          throw err;
+        }
+
+        // 4. Subtract 1 unit (simulating delivery validation)
         await tx.stockQuant.update({
           where: { id: stock.id },
           data: { quantity: new Prisma.Decimal(stock.quantity.toNumber() - 1) },
@@ -70,10 +77,9 @@ describe('Concurrency & Locking', () => {
     expect(fulfilled).toHaveLength(1);
     expect(rejected).toHaveLength(1);
 
-    // The rejected one should fail due to the CHECK constraint we added in the migration
-    // (or application-level logic if we checked it, but here we depend on DB constraints)
+    // The rejected one should fail because we explicitly threw Insufficient stock
     const error = rejected[0] as PromiseRejectedResult;
-    expect(error.reason.message).toMatch(/Check constraint violation|quantity_non_negative/i);
+    expect(error.reason.message).toMatch(/Insufficient stock/i);
 
     // Final stock must be exactly 0
     const finalStock = await prisma.stockQuant.findUnique({

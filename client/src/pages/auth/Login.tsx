@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Mail, Lock } from "lucide-react"
+import { AtSign, Lock } from "lucide-react"
 
 export default function Login() {
   return (
@@ -16,12 +16,12 @@ export default function Login() {
 
       <form className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="loginId">Login ID</Label>
           <Input 
-            id="email" 
-            type="email" 
-            placeholder="you@company.com" 
-            icon={<Mail className="h-4 w-4" />}
+            id="loginId" 
+            type="text" 
+            placeholder="jane.doe" 
+            icon={<AtSign className="h-4 w-4" />}
           />
         </div>
         

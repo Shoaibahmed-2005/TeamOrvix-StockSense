@@ -24,7 +24,7 @@ const signupSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email:    z.string().email(),
+  loginId:  z.string().min(1),
   password: z.string().min(1),
 });
 
@@ -70,15 +70,15 @@ authRouter.post('/login', async (req, res, next) => {
   try {
     const data = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
+    const user = await prisma.user.findUnique({ where: { loginId: data.loginId } });
     if (!user) {
-      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid email or password' } });
+      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid Login Id or Password' } });
       return;
     }
 
     const match = await bcrypt.compare(data.password, user.passwordHash);
     if (!match) {
-      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid email or password' } });
+      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid Login Id or Password' } });
       return;
     }
 
