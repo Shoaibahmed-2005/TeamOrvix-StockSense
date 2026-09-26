@@ -48,7 +48,7 @@ export default function Signup() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Create an account</h1>
         <p className="text-sm text-muted-foreground">
           Start managing your inventory efficiently today.

@@ -75,7 +75,7 @@ export default function ForgotPassword() {
         Back to login
       </Link>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Reset password</h1>
         <p className="text-sm text-muted-foreground">
           {step === "request" && "Enter your email address and we'll send you an OTP to reset your password."}

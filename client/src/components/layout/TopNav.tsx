@@ -148,9 +148,13 @@ export default function TopNav() {
     <header className="sticky top-0 z-40 w-full border-b bg-background shadow-sm print:hidden">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Left: Logo & Desktop Nav */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Stocksense" className="h-8 object-contain" />
+            <img src="/logo-icon.png" alt="Stocksense" className="h-9 w-9 object-contain" />
+            <span className="text-[20px] font-semibold tracking-tight">
+              <span className="text-[#7A0B7E] dark:text-[#D05ACF]">Stock</span>
+              <span className="text-[#F00072] dark:text-[#FF4A9A]">sense</span>
+            </span>
           </Link>
           
           <div className="hidden md:block">
