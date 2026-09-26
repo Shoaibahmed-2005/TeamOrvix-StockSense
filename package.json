@@ -16,7 +16,8 @@
     "db:reset": "npm run db:reset --workspace=server"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "@playwright/test": "^1.49.1"
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "concurrently": "^9.1.2"
   }
 }

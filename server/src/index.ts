@@ -3,18 +3,18 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
-import { authRouter } from './routes/auth.js';
-import { warehousesRouter } from './routes/warehouses.js';
-import { locationsRouter } from './routes/locations.js';
-import { contactsRouter } from './routes/contacts.js';
-import { categoriesRouter } from './routes/categories.js';
-import { productsRouter } from './routes/products.js';
-import { stockRouter } from './routes/stock.js';
-import { operationsRouter } from './routes/operations.js';
-import { movesRouter } from './routes/moves.js';
-import { dashboardRouter } from './routes/dashboard.js';
-import { notificationsRouter } from './routes/notifications.js';
-import { meRouter } from './routes/me.js';
+// import { authRouter } from './routes/auth.js';
+// import { warehousesRouter } from './routes/warehouses.js';
+// import { locationsRouter } from './routes/locations.js';
+// import { contactsRouter } from './routes/contacts.js';
+// import { categoriesRouter } from './routes/categories.js';
+// import { productsRouter } from './routes/products.js';
+// import { stockRouter } from './routes/stock.js';
+// import { operationsRouter } from './routes/operations.js';
+// import { movesRouter } from './routes/moves.js';
+// import { dashboardRouter } from './routes/dashboard.js';
+// import { notificationsRouter } from './routes/notifications.js';
+// import { meRouter } from './routes/me.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -40,21 +40,21 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ─── Public routes ────────────────────────────────────────────────────────────
-app.use('/api/auth', authRouter);
+// app.use('/api/auth', authRouter);
 
 // ─── Protected routes ─────────────────────────────────────────────────────────
 app.use('/api', requireAuth);
-app.use('/api/warehouses', warehousesRouter);
-app.use('/api/locations', locationsRouter);
-app.use('/api/contacts', contactsRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/stock', stockRouter);
-app.use('/api/operations', operationsRouter);
-app.use('/api/moves', movesRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/notifications', notificationsRouter);
-app.use('/api/me', meRouter);
+// app.use('/api/warehouses', warehousesRouter);
+// app.use('/api/locations', locationsRouter);
+// app.use('/api/contacts', contactsRouter);
+// app.use('/api/categories', categoriesRouter);
+// app.use('/api/products', productsRouter);
+// app.use('/api/stock', stockRouter);
+// app.use('/api/operations', operationsRouter);
+// app.use('/api/moves', movesRouter);
+// app.use('/api/dashboard', dashboardRouter);
+// app.use('/api/notifications', notificationsRouter);
+// app.use('/api/me', meRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
