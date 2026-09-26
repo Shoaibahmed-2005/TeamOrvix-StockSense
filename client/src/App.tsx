@@ -6,6 +6,8 @@ import ForgotPassword from "./pages/auth/ForgotPassword"
 
 import { AuthProvider, useAuth } from "./lib/auth"
 
+import AppLayout from "./components/layout/AppLayout"
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div>Loading...</div>; // Could be a nicer spinner
@@ -24,7 +26,18 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
           </Route>
           
-          <Route path="/" element={<ProtectedRoute><div>App Dashboard (Protected) <button onClick={() => fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.reload())}>Logout</button></div></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route index element={<div>Dashboard</div>} />
+            <Route path="products" element={<div>Products</div>} />
+            <Route path="stock" element={<div>Stock</div>} />
+            <Route path="categories" element={<div>Categories</div>} />
+            <Route path="receipts" element={<div>Receipts</div>} />
+            <Route path="deliveries" element={<div>Deliveries</div>} />
+            <Route path="internal" element={<div>Internal Transfers</div>} />
+            <Route path="adjustments" element={<div>Adjustments</div>} />
+            <Route path="history" element={<div>Move History</div>} />
+            <Route path="settings/*" element={<div>Settings</div>} />
+          </Route>
           
           {/* Default route for now redirects to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />

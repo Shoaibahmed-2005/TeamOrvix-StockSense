@@ -25,7 +25,10 @@
 - ✅ Commit + push to main
 
 ## ⏳ M2 — App Shell + Settings
-(Not started)
+- ✅ App shell layout (sidebar, header, 21st component)
+- ✅ Theme toggle
+- ⏳ Profile menu
+- ⏳ Settings Pages (Warehouses, Locations, Contacts)
 
 ## ⏳ M3 — Products, Categories, Stock
 (Not started)
