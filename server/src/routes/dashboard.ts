@@ -97,12 +97,43 @@ router.get("/stats", async (req, res, next) => {
       include: { product: true, operation: true }
     });
 
-    // ── 30-day trend by type ────────────────────────────────────────────
     const trend = await prisma.operation.groupBy({
       by: ['type'],
       _count: { id: true },
       where: { createdAt: { gte: thirtyDaysAgo } }
     });
+
+    const stockByCategoryMap = new Map<string, number>();
+    for (const q of quants) {
+      if (q.product.categoryId) {
+        const catId = q.product.categoryId;
+        const val = Number(q.quantity) * Number(q.product.unitCost);
+        stockByCategoryMap.set(catId, (stockByCategoryMap.get(catId) || 0) + val);
+      }
+    }
+    const categories = await prisma.category.findMany();
+    const stockByCategory = categories.map(c => ({
+      name: c.name,
+      value: stockByCategoryMap.get(c.id) || 0
+    })).filter(c => c.value > 0);
+
+    const topProducts = productEntries
+      .map(e => ({ name: e.product.name, value: e.qty * Number(e.product.unitCost) }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const recentAllMoves = await prisma.stockMove.findMany({
+      where: { date: { gte: fourteenDaysAgo }, direction: { in: ['IN', 'OUT'] } }
+    });
+    const movesByDate = new Map<string, { date: string; in: number; out: number }>();
+    for (const m of recentAllMoves) {
+      const d = new Date(m.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+      if (!movesByDate.has(d)) movesByDate.set(d, { date: d, in: 0, out: 0 });
+      if (m.direction === 'IN') movesByDate.get(d)!.in += Number(m.quantity);
+      if (m.direction === 'OUT') movesByDate.get(d)!.out += Number(m.quantity);
+    }
+    const stockInVsOut = Array.from(movesByDate.values());
 
     res.json({
       productsCount,
@@ -120,6 +151,9 @@ router.get("/stats", async (req, res, next) => {
       lowStockProducts,
       recentMoves,
       trend,
+      stockByCategory,
+      topProducts,
+      stockInVsOut
     });
   } catch (error) {
     next(error);

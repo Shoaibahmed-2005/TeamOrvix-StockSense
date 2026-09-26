@@ -14,32 +14,24 @@ export default function AuthLayout() {
       <div
         className="relative hidden w-1/2 flex-col justify-between overflow-hidden p-10 lg:flex"
         style={{
-          background: "linear-gradient(135deg, #7A0B7E 0%, #5E0861 50%, #C026D3 100%)",
+          backgroundImage: "linear-gradient(135deg, rgba(94,8,97,0.88), rgba(240,0,114,0.55)), url('/login-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center"
         }}
       >
-        {/* Subtle orb for depth */}
-        <div
-          className="pointer-events-none absolute -top-32 -right-32 h-72 w-72 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, #F00072, transparent)" }}
-        />
-        <div
-          className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #ffffff, transparent)" }}
-        />
 
         {/* Logo in a white rounded tile */}
         <div className="relative">
-          <div className="inline-flex items-center justify-center rounded-xl bg-white p-2 shadow-lg">
+          <div className="inline-flex items-center justify-center rounded-2xl bg-white p-4 shadow-lg">
             <img
               src="/logo.png"
               alt="Stocksense"
-              className="h-8 object-contain"
+              className="h-14 object-contain"
               onError={(e) => {
-                // Fallback if logo not found
                 const el = e.target as HTMLImageElement;
                 el.style.display = "none";
                 el.parentElement!.innerHTML =
-                  '<span class="text-primary font-bold text-lg px-1">Stocksense</span>';
+                  '<span class="text-primary font-bold text-2xl px-2">Stocksense</span>';
               }}
             />
           </div>

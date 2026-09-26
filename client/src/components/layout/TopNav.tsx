@@ -25,13 +25,13 @@ function NavItem({ to, label, isActive }: { to: string; label: string; isActive:
     <Link
       to={to}
       className={cn(
-        "relative py-2 text-sm font-medium transition-colors hover:text-primary",
-        isActive ? "text-primary" : "text-muted-foreground"
+        "relative px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-muted",
+        isActive ? "text-primary" : "text-foreground"
       )}
     >
       {label}
       {isActive && (
-        <span className="absolute bottom-0 left-0 h-0.5 w-full bg-accent rounded-full" />
+        <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-accent rounded-full" />
       )}
     </Link>
   )
@@ -63,13 +63,13 @@ function NavDropdown({ label, items, isActive }: { label: string; items: { label
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "relative py-2 text-sm font-medium transition-colors hover:text-primary flex items-center gap-1",
-          isActive || open ? "text-primary" : "text-muted-foreground"
+          "relative px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-muted flex items-center gap-1",
+          isActive || open ? "text-primary" : "text-foreground"
         )}
       >
         {label} ▾
         {(isActive || open) && (
-          <span className="absolute bottom-0 left-0 h-0.5 w-full bg-accent rounded-full" />
+          <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-accent rounded-full" />
         )}
       </button>
       {open && (

@@ -63,18 +63,19 @@ export default function MoveHistory() {
 
   const getRowClass = (direction: string) => {
     switch (direction) {
-      case 'IN': return 'bg-green-50/50 hover:bg-green-50'
-      case 'OUT': return 'bg-red-50/50 hover:bg-red-50'
-      case 'INTERNAL': return 'bg-violet-50/50 hover:bg-violet-50'
-      case 'ADJUSTMENT': return 'bg-amber-50/50 hover:bg-amber-50'
+      case 'IN': return 'bg-green-50/50 hover:bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-900/30'
+      case 'OUT': return 'bg-red-50/50 hover:bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-900/30'
+      case 'INTERNAL': return 'bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-900/20 dark:hover:bg-slate-800/30'
+      case 'ADJUSTMENT': return 'bg-amber-50/50 hover:bg-amber-50 dark:bg-amber-950/20 dark:hover:bg-amber-900/30'
       default: return ''
     }
   }
 
   const formatQty = (m: any) => {
     const qty = Math.abs(Number(m.quantity))
-    if (m.direction === 'OUT') return `-${qty}`
-    if (m.direction === 'ADJUSTMENT' && Number(m.quantity) < 0) return `-${qty}`
+    if (m.direction === 'OUT') return `−${qty}`
+    if (m.direction === 'INTERNAL') return `${qty}`
+    if (m.direction === 'ADJUSTMENT') return Number(m.quantity) > 0 ? `+${qty}` : (Number(m.quantity) < 0 ? `−${qty}` : `${qty}`)
     return `+${qty}`
   }
 
@@ -184,7 +185,7 @@ export default function MoveHistory() {
                     <TableCell className="text-sm text-muted-foreground">{m.fromLocation?.name || "—"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{m.toLocation?.name || "—"}</TableCell>
                     <TableCell className="text-sm">{m.product?.name || "—"}</TableCell>
-                    <TableCell className={`text-right font-medium tabular-nums ${m.direction === 'IN' ? 'text-green-700' : m.direction === 'OUT' ? 'text-red-700' : 'text-foreground'}`}>
+                    <TableCell className={`text-right font-medium tabular-nums ${m.direction === 'IN' ? 'text-green-700 dark:text-green-400' : m.direction === 'OUT' ? 'text-red-700 dark:text-red-400' : m.direction === 'ADJUSTMENT' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
                       {formatQty(m)}
                     </TableCell>
                     <TableCell>{getDirectionBadge(m.direction)}</TableCell>
@@ -214,7 +215,7 @@ export default function MoveHistory() {
                     {m.contact?.name && <div><span className="font-medium">Contact:</span> {m.contact.name}</div>}
                     <div><span className="font-medium">From:</span> {m.fromLocation?.name || "—"}</div>
                     <div><span className="font-medium">To:</span> {m.toLocation?.name || "—"}</div>
-                    <div className={`font-semibold ${m.direction === 'IN' ? 'text-green-700' : m.direction === 'OUT' ? 'text-red-700' : ''}`}>
+                    <div className={`font-semibold ${m.direction === 'IN' ? 'text-green-700 dark:text-green-400' : m.direction === 'OUT' ? 'text-red-700 dark:text-red-400' : m.direction === 'ADJUSTMENT' ? 'text-amber-700 dark:text-amber-400' : ''}`}>
                       Qty: {formatQty(m)}
                     </div>
                     <div className="text-xs text-muted-foreground/70 mt-1">

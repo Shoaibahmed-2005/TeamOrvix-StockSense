@@ -80,30 +80,30 @@
 
   .dark {
     /* ── Backgrounds ─────────────────────────────────── */
-    --background:   290 33% 7%;    /* #110C13 */
-    --foreground:   290 40% 97%;   /* #F8F2F8 */
+    --background:   283 23% 6%;    /* #110C13 */
+    --foreground:   300 27% 96%;   /* #F8F2F8 */
 
     /* ── Card / Popover ──────────────────────────────── */
-    --card:         290 28% 10%;   /* #1D141F */
-    --card-foreground: 290 40% 97%;
+    --card:         289 22% 10%;   /* #1D141F */
+    --card-foreground: 300 27% 96%;
 
-    --popover:      290 28% 10%;
-    --popover-foreground: 290 40% 97%;
+    --popover:      289 22% 10%;
+    --popover-foreground: 300 27% 96%;
 
     /* ── Primary — Light Purple ──────────────────────── */
-    --primary:      300 53% 47%;   /* #B83DB8 */
+    --primary:      300 48% 48%;   /* #B83DB8 */
     --primary-foreground: 0 0% 100%;
 
     /* ── Secondary ───────────────────────────────────── */
-    --secondary:    296 10% 20%;
-    --secondary-foreground: 290 40% 97%;
+    --secondary:    288 22% 13%;   /* Hover #261A29 */
+    --secondary-foreground: 300 27% 96%;
 
     /* ── Muted ───────────────────────────────────────── */
-    --muted:        296 15% 15%;
-    --muted-foreground: 296 8% 53%;  /* #887B8B */
+    --muted:        288 22% 13%;   /* Hover #261A29 */
+    --muted-foreground: 292 11% 70%; /* #B9ACBB */
 
     /* ── Accent — Hot Pink ───────────────────────────── */
-    --accent:       338 100% 64%;  /* #FF4A9A */
+    --accent:       333 100% 65%;  /* #FF4A9A */
     --accent-foreground: 0 0% 100%;
 
     /* ── Destructive ─────────────────────────────────── */
@@ -111,33 +111,33 @@
     --destructive-foreground: 0 0% 100%;
 
     /* ── Border / Input ──────────────────────────────── */
-    --border:       290 28% 18%;   /* #352738 */
-    --input:        290 20% 25%;   /* #49364B */
-    --ring:         300 53% 47%;
+    --border:       291 18% 20%;   /* #3A2A3D */
+    --input:        291 18% 20%;   /* #3A2A3D */
+    --ring:         300 48% 48%;
 
     /* ── Status colours ──────────────────────────────── */
-    --success:      154 59% 50%;   /* #35C98A */
+    --success:      154 59% 50%;
     --success-text: 154 59% 50%;
-    --warning:      39 100% 59%;   /* #FFB52E */
+    --warning:      39 100% 59%;
     --warning-text: 39 100% 59%;
-    --danger:       358 100% 70%;  /* #FF6268 */
+    --danger:       358 100% 70%;
     --danger-text:  358 100% 70%;
-    --info:         252 100% 76%;  /* #9B83FF */
+    --info:         252 100% 76%;
     --info-text:    252 100% 76%;
 
-    /* ── Sidebar ─────────────────────────────────────── */
-    --sidebar:          290 33% 9%;   /* #171019 */
-    --sidebar-foreground: 290 40% 97%;
-    --sidebar-primary:  300 53% 47%;
+    /* ── Sidebar / Nav ───────────────────────────────── */
+    --sidebar:          287 22% 8%;   /* #171019 */
+    --sidebar-foreground: 300 27% 96%;
+    --sidebar-primary:  300 48% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent:   296 15% 15%;
-    --sidebar-accent-foreground: 290 40% 97%;
-    --sidebar-border:   290 28% 18%;
-    --sidebar-ring:     300 53% 47%;
+    --sidebar-accent:   288 22% 13%;
+    --sidebar-accent-foreground: 300 27% 96%;
+    --sidebar-border:   291 18% 20%;
+    --sidebar-ring:     300 48% 48%;
 
     /* ── Charts ──────────────────────────────────────── */
-    --chart-1: 300 53% 60%;
-    --chart-2: 338 100% 64%;
+    --chart-1: 300 48% 48%;
+    --chart-2: 333 100% 65%;
     --chart-3: 270 80% 70%;
     --chart-4: 154 59% 50%;
     --chart-5: 39 100% 59%;

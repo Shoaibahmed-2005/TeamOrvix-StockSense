@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { Package, ArrowDownToLine, ArrowUpFromLine, ArrowRightLeft, AlertTriangle, PackageX } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, AreaChart, Area, PieChart, Pie, Legend, CartesianGrid } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useQuery } from "@tanstack/react-query"
@@ -82,7 +82,7 @@ export default function Dashboard() {
               className="text-muted-foreground hover:underline"
               onClick={() => navigate("/receipts?status=DRAFT")}
             >
-              {stats.receiptsOperations} Operations
+              {stats.receiptsOperations} Operation{stats.receiptsOperations === 1 ? '' : 's'}
             </button>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function Dashboard() {
               className="text-muted-foreground hover:underline"
               onClick={() => navigate("/deliveries?status=DRAFT")}
             >
-              {stats.deliveriesOperations} Operations
+              {stats.deliveriesOperations} Operation{stats.deliveriesOperations === 1 ? '' : 's'}
             </button>
           </div>
         </div>
@@ -175,27 +175,103 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Charts Row ────────────────────────────────────────────────── */}
+      {/* ── Charts Row 1 ────────────────────────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Operations breakdown */}
-        <div className="rounded-xl border bg-card shadow-sm">
-          <div className="p-5 border-b">
-            <h3 className="font-semibold text-sm">Operations — Last 30 Days</h3>
+        {/* Stock In vs Out */}
+        <div className="rounded-xl border bg-card shadow-sm flex flex-col">
+          <div className="p-5 border-b border-border">
+            <h3 className="font-semibold text-sm">Stock Flow (Last 14 Days)</h3>
           </div>
-          <div className="p-5 min-h-[220px]">
-            {(stats.trend || []).length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center mt-10">No operations yet.</p>
+          <div className="p-5 min-h-[260px] flex-1">
+            {(stats.stockInVsOut || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center mt-10">No stock flow yet.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={stats.trend?.map((t: any) => ({ name: t.type, count: t._count.id })) || []}>
-                  <XAxis dataKey="name" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {(stats.trend?.map((t: any) => ({ name: t.type })) || []).map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[entry.name] || '#7A0B7E'} />
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={stats.stockInVsOut || []}>
+                  <defs>
+                    <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" fontSize={11} tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis fontSize={11} tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--popover-foreground))', borderRadius: '8px' }} 
+                    itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                  <Area type="monotone" dataKey="in" name="Stock In" stroke="hsl(var(--success))" fillOpacity={1} fill="url(#colorIn)" />
+                  <Area type="monotone" dataKey="out" name="Stock Out" stroke="hsl(var(--destructive))" fillOpacity={1} fill="url(#colorOut)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Stock Value by Category */}
+        <div className="rounded-xl border bg-card shadow-sm flex flex-col">
+          <div className="p-5 border-b border-border">
+            <h3 className="font-semibold text-sm">Stock Value by Category</h3>
+          </div>
+          <div className="p-5 min-h-[260px] flex-1">
+            {(stats.stockByCategory || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center mt-10">No stock value yet.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={stats.stockByCategory || []}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={2}
+                  >
+                    {(stats.stockByCategory || []).map((_: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length] as string} />
                     ))}
-                  </Bar>
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: any) => `₹${Number(value).toLocaleString('en-IN')}`} 
+                    contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--popover-foreground))' }} 
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Charts Row 2 ────────────────────────────────────────────────── */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Top Products */}
+        <div className="rounded-xl border bg-card shadow-sm flex flex-col">
+          <div className="p-5 border-b border-border">
+            <h3 className="font-semibold text-sm">Top Products by Value</h3>
+          </div>
+          <div className="p-5 min-h-[260px] flex-1">
+            {(stats.topProducts || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center mt-10">No products found.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={stats.topProducts || []} layout="vertical" margin={{ left: 40, right: 10, top: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                  <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `₹${val/1000}k`} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis dataKey="name" type="category" fontSize={11} tickLine={false} axisLine={false} width={100} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                  <Tooltip 
+                    formatter={(value: any) => `₹${Number(value).toLocaleString('en-IN')}`} 
+                    contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--popover-foreground))' }} 
+                  />
+                  <Bar dataKey="value" name="Value" radius={[0, 4, 4, 0]} fill="hsl(var(--primary))" barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -216,18 +292,19 @@ export default function Dashboard() {
                   <div>
                     <p className="font-medium leading-none">{move.product?.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {move.operation?.reference} · {new Date(move.createdAt).toLocaleDateString('en-IN')}
+                      {move.operation?.reference || 'Adjustment'} · {move.date ? new Date(move.date).toLocaleDateString('en-IN') : move.createdAt ? new Date(move.createdAt).toLocaleDateString('en-IN') : 'N/A'}
                     </p>
                   </div>
                   <Badge
                     variant="outline"
                     className={
-                      move.type === 'IN' ? 'text-green-700 border-green-200 bg-green-50' :
-                      move.type === 'OUT' ? 'text-red-700 border-red-200 bg-red-50' :
-                      'text-violet-700 border-violet-200 bg-violet-50'
+                      move.direction === 'IN' ? 'text-green-700 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 dark:text-green-300' :
+                      move.direction === 'OUT' ? 'text-red-700 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 dark:text-red-300' :
+                      move.direction === 'ADJUSTMENT' ? 'text-amber-700 border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300' :
+                      'text-slate-700 border-slate-200 bg-slate-50 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300'
                     }
                   >
-                    {move.type === 'OUT' ? '-' : '+'}{move.quantity}
+                    {move.direction === 'IN' ? '+' : move.direction === 'OUT' ? '−' : move.direction === 'ADJUSTMENT' ? (Number(move.quantity) > 0 ? '+' : '') : ''}{Math.abs(Number(move.quantity))}
                   </Badge>
                 </div>
               ))
