@@ -3,221 +3,430 @@
 ## 1. HOW TO RUN
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- PostgreSQL (v14 or higher)
+- Node.js v18 or higher (`node -v` to check)
+- PostgreSQL v14 or higher (`psql --version` to check)
 
 ### Setup the Databases
-You will need two PostgreSQL databases: one for the main application and one for tests.
-Run the following in `psql` or your database manager:
+Run the following in `psql` (or any PostgreSQL client):
 ```sql
 CREATE DATABASE stocksense;
 CREATE DATABASE stocksense_test;
 ```
 
 ### Environment Variables
-In the `server/` directory, create a `.env` file (you can copy `.env.example`):
+In the `server/` directory, create a `.env` file (copy `.env.example` as a start):
 ```env
-PORT=3000
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/stocksense?schema=public"
-TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/stocksense_test?schema=public"
-JWT_SECRET="super-secret-jwt-key"
+PORT=3001
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/stocksense?schema=public"
+TEST_DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/stocksense_test?schema=public"
+JWT_SECRET="change-me-to-a-long-random-string"
+CLIENT_URL="http://localhost:5173"
 ```
-*(Adjust the username, password, and port in the `DATABASE_URL` to match your local Postgres setup).*
+Replace `YOUR_PASSWORD` with your local Postgres password, and adjust username/port if needed.
 
-### Exact Commands
-From the root of the project, run the following commands sequentially:
+### Exact Commands (run from project root in order)
+```bash
+# 1. Install all dependencies
+npm install
 
-1. **Install all dependencies**
-   ```bash
-   npm install
-   ```
+# 2. Apply database migrations
+cd server
+npx prisma migrate dev
 
-2. **Reset the database and seed it**
-   ```bash
-   npm run db:reset --workspace=server
-   ```
-   *(This applies migrations and populates the database with initial locations, products, and a demo user).*
+# 3. Reset and seed the database with demo data
+npm run db:reset --workspace=server
 
-3. **Start the application**
-   ```bash
-   npm run dev
-   ```
+# 4. Start both client and server in development mode
+cd ..
+npm run dev
+```
 
 ### URLs to Open
-- **Client Application:** http://localhost:5173
-- **API Server:** http://localhost:3000
+| Service | URL |
+|---------|-----|
+| Web App (Client) | http://localhost:5173 |
+| API Server | http://localhost:3001 |
 
 ### Demo Login
-- **Login ID:** `demouser`
-- **Password:** `Password!123`
+| Field | Value |
+|-------|-------|
+| Login ID | `admin01` |
+| Password | `Admin@1234` |
 
 ---
 
 ## 2. PAGE-BY-PAGE GUIDE
 
-### Dashboard
-- **Route:** `/`
-- **Controls:** 
-  - 4 high-level stat cards (Total Products, Pending Receipts, Pending Deliveries, Total Inventory Value).
-  - Recent Activity (Moves) block.
-  - Operations (Last 7 Days) bar chart.
-  - Low Stock Alerts panel.
-- **Seed Data Expected:** After seeding, stats should reflect the seed products and categories. Operations might be empty until you create some.
+### Dashboard — `/`
+The real-time snapshot of all inventory operations.
 
-### Notification Bell (Header)
-- **Controls:** Click the bell icon to open the Notifications Popover.
-- **What it does:** Displays polled alerts for Low Stock, Pending Receipts, and Pending Deliveries.
+**Receipt Card:**
+- **"N to Receive" button** — shows count of READY receipts; clicks through to `/receipts?status=READY`
+- **"X Late"** — receipts whose schedule date is past today (IST) and not DONE/CANCELLED; links to `/receipts?late=1`
+- **"Y Operations"** — pending receipts with schedule date in the future; links to `/receipts?status=DRAFT`
 
-### Receipts
-- **Route:** `/receipts`
-- **Controls:** 
-  - "New Receipt" button (navigates to `/receipts/new`).
-  - Search bar (reference or vendor).
-  - Status filter, Location filter, Date filter.
-  - List / Kanban toggle buttons.
-- **Seed Data Expected:** Empty list initially.
+**Delivery Card:**
+- **"N to Deliver" button** — count of READY deliveries; links to `/deliveries?status=READY`
+- **"X Late"** — deliveries past due; links to `/deliveries?late=1`
+- **"Y Waiting"** — deliveries in WAITING status (insufficient stock); links to `/deliveries?status=WAITING`
+- **"Z Operations"** — future-dated pending deliveries; links to `/deliveries?status=DRAFT`
 
-### Receipt Form
-- **Route:** `/receipts/new` or `/receipts/:id`
-- **Controls:**
-  - "Receive From" (Vendor) select, "Destination Location" select, "Schedule Date" input.
-  - Status stepper (Draft › Ready › Done).
-  - "To Do" button (moves Draft to Ready).
-  - "Validate" button (moves Ready to Done and updates stock).
-  - "Cancel" button.
-  - "Print" button (only visible when Done).
-  - Products Table: "Add a product" line, product select, quantity input, delete icon.
+**Internal Transfers Card:** count of non-DONE/CANCELLED internal transfers; links to `/internal`
 
-### Deliveries
-- **Route:** `/deliveries`
-- **Controls:** 
-  - Same filters, search, and List/Kanban toggle as Receipts.
-  - "New Delivery" button.
-- **Seed Data Expected:** Empty list initially.
+**KPI Cards:**
+- Total Products (links to `/products`)
+- Low Stock — products below reorder min qty (links to `/stock`)
+- Out of Stock — products with 0 on hand (links to `/stock`)
 
-### Delivery Form
-- **Route:** `/deliveries/new` or `/deliveries/:id`
-- **Controls:**
-  - Status stepper (Draft › Waiting › Ready › Done).
-  - "To Do" button (checks availability).
-  - "Check Availability" button (if Waiting).
-  - "Validate" button (completes delivery).
-  - Products Table with quantities. If stock is insufficient, displays a red border indicator (in edit mode).
+**Operations chart:** Bar chart of operations by type over the last 30 days.
 
-### Internal Transfers
-- **Route:** `/internal`
-- **Controls:** 
-  - Same list views and filters.
-  - "New Transfer" button.
-- **Seed Data Expected:** Empty list initially.
+**Recent Stock Moves:** last 8 moves with product name, reference, date, and +/- quantity badge.
 
-### Adjustments
-- **Route:** `/adjustments`
-- **Controls:** 
-  - Same list views and filters.
-  - "New Adjustment" button.
-- **Seed Data Expected:** Empty list initially.
+**Low Stock Alerts panel:** lists up to 8 low-stock products with a "Create Receipt" shortcut button.
 
-### Move History
-- **Route:** `/history`
-- **Controls:** 
-  - Search bar.
-  - Direction Filter (IN, OUT, INTERNAL, ADJUSTMENT, ALL).
-  - List / Kanban toggle buttons.
-  - "Export CSV" button (downloads the filtered view).
-- **Seed Data Expected:** Empty list initially (or contains adjustments if products were created with initial stock).
-
-### Products
-- **Route:** `/products`
-- **Controls:** 
-  - Search bar.
-  - "Add Product" button (opens a modal).
-  - Edit button (pencil icon on each row, opens modal).
-  - **Product Modal:** Fields for SKU, Name, Category, UoM, Unit Cost. When adding a *new* product, "Initial Stock" and "Initial Location" fields are visible. When *editing*, a "Stock Details" breakdown is displayed.
-- **Seed Data Expected:** 3 seeded products (Office Chair, Standing Desk, Laptop Stand).
-
-### Stock Levels
-- **Route:** `/stock`
-- **Controls:** 
-  - Table displaying stock aggregated by Product and Location.
-  - Inline "Edit" button to perform a quick adjustment.
-- **Seed Data Expected:** Empty initially, or matching initial stock quantities if set.
-
-### Categories
-- **Route:** `/categories`
-- **Controls:** 
-  - "Add Category" button.
-  - List of categories.
-- **Seed Data Expected:** 2 seeded categories (Furniture, Electronics).
-
-### Settings: Warehouses
-- **Route:** `/settings/warehouses`
-- **Controls:** Form to create/edit warehouse (Name, Short Code, Address).
-- **Seed Data Expected:** Main Warehouse (WH).
-
-### Settings: Locations
-- **Route:** `/settings/locations`
-- **Controls:** Form to create/edit location (Name, Short Code, Type, Warehouse).
-- **Seed Data Expected:** WH/Stock (Internal), Vendors (Vendor), Customers (Customer), Inventory Adjustment (Adjustment).
-
-### Settings: Contacts
-- **Route:** `/settings/contacts`
-- **Controls:** Form to create/edit contact (Name, Email, Phone, Address, Type).
-- **Seed Data Expected:** Vendor A, Customer B.
-
-### My Profile (Dropdown)
-- **Route:** `/settings/profile`
-- **Controls:** Edit Full Name/Email, Change Password, Logout.
+**Seed data to expect:**
+- Receipt card: "2 to Receive" (WH/IN/0003 is READY), "1 Late" (WH/IN/0004), "1 Operations" (WH/IN/0002 is future-dated DRAFT)
+- Delivery card: "0 to Deliver", "0 Late", "1 Waiting" (WH/OUT/0002)
+- Low Stock: Chair (3 on hand, min 5)
+- Out of Stock: Steel Rods (0 on hand)
 
 ---
 
-## 3. TEST SCENARIOS
+### Notification Bell (Header)
+Click the bell icon in the top-right header.
+- Polls every 10 seconds for low-stock products, pending receipts and pending deliveries.
+- Shows a red badge dot when alerts exist.
+- Each notification row is clickable and navigates to the relevant list.
 
-**a. Login with wrong password**
-- Steps: Go to `/login`. Enter Login ID: `demouser`, Password: `wrongpassword`. Click Login.
-- Expected Result: Toast or inline error stating exactly "Invalid Login Id or Password".
+**Seed data to expect:** alerts for Low Stock (Chair), Pending Receipts.
 
-**b. Sign up with a weak password**
-- Steps: Go to `/signup`. Fill in details but enter `password` in the password field.
-- Expected Result: Live checklist indicates missing requirements (uppercase, number/special character, minimum 9 chars).
+---
 
-**c. Receipt Flow**
-- Steps: Go to `/receipts`. Click "New Receipt". Add "Standing Desk", qty 10. Click "To Do", then click "Validate".
-- Expected Result: Status changes to Done. "Print" button appears. Go to Stock page, see +10 Standing Desks. Go to Move History, see a green row for the IN move.
+### Receipts — `/receipts`
+**Controls:**
+- **New Receipt** button → `/receipts/new`
+- Search bar (matches reference or contact name)
+- Status filter, Warehouse filter, Date range filter
+- **List / Kanban** toggle (default List)
+- Click any row → opens `/receipts/:id`
 
-**d. Delivery Flow**
-- Steps: Go to `/deliveries`. Click "New Delivery". Add "Standing Desk", qty 5. Click "To Do" then "Validate".
-- Expected Result: Status changes to Done. Stock page shows quantity is now 5. Move History shows a blue OUT row.
+**List columns:** Reference, From, To, Contact, Schedule Date, Status badge (late dates in red)
 
-**e. Delivery for more than available**
-- Steps: Create another delivery for "Standing Desk", qty 15 (when only 5 exist). Click "To Do".
-- Expected Result: Status becomes "Waiting". A toast/error indicating insufficient stock appears. Receive 10 more desks via a Receipt. Go back to the Waiting Delivery, click "Check Availability". Status changes to "Ready".
+**Seed data to expect:**
+| Reference | Status | Contact | Notes |
+|-----------|--------|---------|-------|
+| WH/IN/0001 | DONE | Azure Interior | 50 Desks + 50 Tables received |
+| WH/IN/0002 | DRAFT | Steel Corp | 100 Steel Rods, future date |
+| WH/IN/0003 | READY | Azure Interior | 20 Chairs, today |
+| WH/IN/0004 | DRAFT | Steel Corp | 50 Steel Rods, **late** (3 days ago) |
 
-**f. Internal Transfer**
-- Steps: Go to `/internal`. New transfer of "Standing Desk" qty 1 from WH/Stock to another internal location. Validate.
-- Expected Result: Total quantity of Standing Desk remains unchanged on Stock page, but split across the two locations. Move History shows INTERNAL direction.
+---
 
-**g. Adjustment**
-- Steps: Go to `/adjustments`. Create adjustment for "Standing Desk" at WH/Stock setting counted qty lower (e.g., 2 instead of 4). Validate.
-- Expected Result: Stock updates to 2 immediately. Move History shows an ADJUSTMENT row reflecting the negative change.
+### Receipt Form — `/receipts/new` or `/receipts/:id`
+**Action bar buttons:**
+- **"Mark as To Do"** (DRAFT only) → moves to READY
+- **"Validate"** (READY only) → moves to DONE, increases destination stock, creates stock moves
+- **"Cancel"** (DRAFT or READY only) → marks CANCELLED
+- **"Print"** (DONE only) → triggers browser print of the proper A4 slip
 
-**h. Dashboard numbers before/after each step**
-- Steps: Check Dashboard before a flow. Create a Draft Receipt. Check Dashboard.
-- Expected Result: Dashboard "Pending Receipts" counter increases by 1.
+**Status stepper:** Draft › Ready › Done
 
-**i. Real-time updates**
-- Steps: Open the application in two side-by-side browser windows. In Window 1, validate a Receipt.
-- Expected Result: In Window 2, the Dashboard stats and Notification Bell update automatically without refreshing the page.
+**Fields:**
+- Reference (auto-generated, read-only for existing)
+- Receive From (Vendor) — select from vendor/both contacts
+- Destination Location — internal locations
+- Schedule Date (datetime picker)
+- Responsible — auto-filled with logged-in user's name (always read-only)
+
+**Products table:** `[SKU] Name` format in selector, Quantity column, Done column (READY), delete button (DRAFT only), "Add a product" button at bottom.
+
+---
+
+### Deliveries — `/deliveries`
+Same layout as Receipts. Lists delivery operations.
+
+**Seed data to expect:**
+| Reference | Status | Contact | Notes |
+|-----------|--------|---------|-------|
+| WH/OUT/0001 | DONE | Gemini Furniture | 10 Desks delivered |
+| WH/OUT/0002 | WAITING | Gemini Furniture | 10 Chairs, insufficient stock |
+
+---
+
+### Delivery Form — `/deliveries/new` or `/deliveries/:id`
+**Action bar buttons:**
+- **"Mark as To Do"** (DRAFT) → tries to reserve stock; if insufficient, goes to WAITING with a toast error
+- **"Check Availability"** (WAITING) → re-checks stock; moves to READY if stock available
+- **"Validate"** (READY) → ships goods, decrements stock
+- **"Cancel"** / **"Print"** (DONE)
+
+**Status stepper:** Draft › Waiting › Ready › Done
+
+**Fields:** Reference, Delivery Address, Schedule Date, Responsible (auto-filled), Operation Type, Customer (Contact), Source Location.
+
+**Products table:** Product, Quantity, Available columns. Lines with insufficient stock show red background and a toast notification on To Do.
+
+---
+
+### Internal Transfers — `/internal`
+**Controls:** Same as Receipts list. "New Transfer" → `/internal/new`.
+
+**Seed data to expect:**
+| Reference | Status | Notes |
+|-----------|--------|-------|
+| WH/INT/0001 | DRAFT | Table × 5, Stock1 → Rack B |
+
+---
+
+### Internal Transfer Form — `/internal/new` or `/internal/:id`
+**Action bar:** "Mark as To Do" → READY, "Validate" → DONE (moves stock between locations, total unchanged), "Cancel", "Print" (DONE only).
+
+**Stepper:** Draft › Ready › Done
+
+**Fields:** Source Location, Destination Location, Schedule Date, Responsible, Products table.
+
+---
+
+### Adjustments — `/adjustments`
+**Controls:** Same as Receipts list. "New Adjustment" → `/adjustments/new`.
+
+**Seed data:** Empty initially (adjustments are created inline by stock edits or new products with initial stock).
+
+---
+
+### Adjustment Form — `/adjustments/new` or `/adjustments/:id`
+**Action bar:** "Mark as To Do" → READY, "Validate / Apply" → DONE (sets stock to counted qty, creates ADJUSTMENT move), "Cancel".
+
+**Stepper:** Draft › Ready › Done
+
+**Fields:** Adjustment Location, Schedule Date, Responsible, Products table with Recorded Qty, Counted Qty (editable) and Difference (green +, red −).
+
+---
+
+### Move History — `/history`
+**Controls:**
+- Search bar (reference, product, contact)
+- Direction filter (ALL / IN / OUT / INTERNAL / ADJUSTMENT)
+- List / Kanban toggle (default List)
+- **Export CSV** button — downloads filtered view as CSV
+
+**Columns:** Reference, Date, Contact, From, To, Product, Quantity (+N / −N), Direction
+
+**Row colours:**
+- IN rows → green background
+- OUT rows → red background
+- INTERNAL rows → violet background
+- ADJUSTMENT rows → amber background
+
+One row per product per operation line.
+
+**Seed data to expect:** 3 rows from done operations (Desk IN ×50, Table IN ×50 from WH/IN/0001; Desk OUT ×10 from WH/OUT/0001).
+
+---
+
+### Products — `/products`
+**Controls:**
+- Search bar (name or SKU)
+- "Add Product" button → opens modal
+- Edit (pencil) icon per row → edit modal
+
+**Table columns:** Product, SKU, Category, UoM, Unit Cost, On Hand, Free to Use
+
+**Add Product modal:** Name, SKU, Category, UoM, Unit Cost, Optional "Initial Stock" qty + location (creates an ADJUSTMENT automatically on save).
+
+**Edit Product modal:** Same fields; shows "Stock Details" breakdown per location for existing products.
+
+**Seed data to expect:**
+| Product | SKU | Category | Unit Cost | On Hand |
+|---------|-----|----------|-----------|---------|
+| Desk | DESK001 | Furniture | ₹3,000 | 50 |
+| Table | TABLE001 | Furniture | ₹3,000 | 50 |
+| Chair | CHAIR001 | Furniture | ₹1,200 | 3 |
+| Steel Rods | STEEL001 | Raw Material | ₹85 | 0 |
+
+---
+
+### Stock Levels — `/stock`
+**Controls:**
+- Search bar (product or location)
+- Location filter dropdown (internal locations)
+- Total Stock Value shown top-right in ₹ (Indian format)
+
+**Columns:** Product, Location, Per Unit Cost (₹), On Hand, Free to Use
+
+**Inline edit:** Hover "On Hand" to reveal pencil icon; enter new quantity and save (creates an ADJUSTMENT operation automatically).
+
+**Free to Use** colour: green (available), amber (< 5), red (0).
+
+**Seed data to expect (after seed):** Desk 50, Table 50, Chair 3, Steel Rods 0 — all in Stock1/WH.
+
+---
+
+### Categories — `/categories`
+**Controls:** "Add Category" button, list with edit/delete.
+
+**Seed data:** Furniture, Raw Material, Office Supplies.
+
+---
+
+### Settings: Warehouses — `/settings/warehouses`
+**Controls:** Form for Name, Short Code (uppercase, 2–5 chars), Address. CRUD table.
+
+**Seed data:**
+| Name | Code | Address |
+|------|------|---------|
+| Main Warehouse | WH | Chennai, Tamil Nadu |
+| Warehouse 2 | WH2 | Bengaluru, Karnataka |
+
+---
+
+### Settings: Locations — `/settings/locations`
+**Controls:** Form for Name, Short Code, Type, Warehouse. CRUD table.
+
+**Seed data:**
+
+| Name | Type | Warehouse |
+|------|------|-----------|
+| Stock1 | INTERNAL | WH |
+| Stock2 | INTERNAL | WH |
+| Rack A | INTERNAL | WH |
+| Rack B | INTERNAL | WH |
+| Production Floor | INTERNAL | WH |
+| Stock | INTERNAL | WH2 |
+| Vendor | VENDOR | — (virtual) |
+| Customer | CUSTOMER | — (virtual) |
+| Inventory Adjustment | ADJUSTMENT | — (virtual) |
+
+---
+
+### Settings: Contacts — `/settings/contacts`
+**Controls:** Form for Name, Email, Phone, Address, Type (VENDOR / CUSTOMER / BOTH). CRUD table.
+
+**Seed data:**
+| Name | Type |
+|------|------|
+| Azure Interior | BOTH |
+| Steel Corp | VENDOR |
+| Gemini Furniture | CUSTOMER |
+
+---
+
+### My Profile — `/settings/profile`
+**Controls:** Edit Full Name and Email; Change Password form; theme preference selector; Logout button.
+
+---
+
+## 3. TEST SCENARIOS (exact steps and expected results)
+
+### a. Login with wrong password
+1. Go to http://localhost:5173/login
+2. Enter Login ID: `admin01`, Password: `wrongpassword`
+3. Click **Sign In**
+4. **Expected:** Inline error: `"Invalid Login Id or Password"` (exact string, no period)
+
+---
+
+### b. Sign up with a weak password
+1. Go to http://localhost:5173/signup
+2. Fill Full Name, Login ID, Email. Enter Password: `password`
+3. **Expected live checklist:**
+   - ✅ More than 8 characters (passes — 8 chars is the boundary; "password" is 8 chars so ❌ actually)
+   - ❌ One uppercase letter (fails)
+   - ❌ One special character (fails)
+   - ✅ One lowercase letter (passes)
+4. Submit is blocked until all pass.
+
+---
+
+### c. Receipt Flow — Desk × 10
+1. Go to `/receipts/new`
+2. Select "Receive From": **Azure Interior**; Location: **Stock1**; today's date.
+3. Click "Add a product" → select `[DESK001] Desk`, qty `10`
+4. Click **Save** → redirects to the receipt form with reference e.g. `WH/IN/0005`
+5. Click **Mark as To Do** → status changes to READY
+6. Click **Validate** → status changes to DONE, "Print" button appears
+7. Go to `/stock` → Desk row now shows **60** on hand (was 50 + 10)
+8. Go to `/history` → new green IN row: `WH/IN/0005, [DESK001] Desk, +10`
+9. Print button triggers a proper A4 slip with logo, reference, contact, lines, signature
+
+---
+
+### d. Delivery Flow — Desk × 5
+1. Go to `/deliveries/new`
+2. Select Customer: **Gemini Furniture**; Source Location: **Stock1**; Delivery Address: any text
+3. Add `[DESK001] Desk`, qty `5` → Available should show `60`
+4. **Save** → redirects to delivery form
+5. **Mark as To Do** → status READY (stock sufficient)
+6. **Validate** → DONE; stock Desk drops to **55**
+7. `/history` → red OUT row: `+WH/OUT/…, Desk, -5`
+
+---
+
+### e. Delivery — Insufficient Stock → WAITING → Restock → READY
+1. Create delivery: `[CHAIR001] Chair`, qty `20` (only 3 on hand)
+2. **Mark as To Do** → toast: `"Insufficient stock…"`, status becomes **WAITING**
+3. Go to `/receipts/new`, receive Chair × 20 from Azure Interior to Stock1, **Validate**
+4. Go back to the WAITING delivery → click **Check Availability** → status changes to **READY**
+5. **Validate** → DONE; Chair stock becomes 3 + 20 − 20 = 3
+
+---
+
+### f. Internal Transfer — Stock1 → Rack A
+1. Go to `/internal/new`
+2. From: **Stock1**; To: **Rack A**; add `[DESK001] Desk`, qty `5`
+3. **Save** → **Mark as To Do** → **Validate**
+4. Go to `/stock` with location filter **All Locations**:
+   - Desk/Stock1 shows `50` (was 55 − 5) ← (depends on prior steps)
+   - Desk/Rack A shows `5` (new row)
+   - **Total on hand is unchanged**
+5. `/history` → violet INTERNAL row: `Desk, Stock1 → Rack A, +5`
+
+---
+
+### g. Adjustment — Lower Chair to 2
+1. Go to `/adjustments/new`
+2. Select Location: **Stock1**; add `[CHAIR001] Chair`, Counted Qty: `2`
+3. Difference shows **−1** (or whatever the gap is) in red
+4. **Save** → **Mark as To Do** → **Validate / Apply**
+5. `/stock` → Chair shows **2** on hand
+6. `/history` → amber ADJUSTMENT row for Chair
+
+---
+
+### h. Dashboard Numbers — Before & After
+| Step | Pending Receipts | Pending Deliveries | Waiting | Low Stock |
+|------|------------------|--------------------|---------|-----------|
+| After seed | 3 (WH/IN/0002, 0003, 0004) | 1 (WH/OUT/0002) | 1 | Chair |
+| After validating WH/IN/0003 | 2 | 1 | 1 | Chair |
+| After creating new receipt (DRAFT) | 3 | 1 | 1 | Chair |
+
+---
+
+### i. Real-time — Two Windows
+1. Open http://localhost:5173 in **Window 1** and **Window 2** (both logged in).
+2. In Window 1, open any receipt and click **Validate**.
+3. In Window 2, the **Dashboard** pending receipt count and **Stock Levels** update automatically within seconds — no browser refresh needed.
+4. This works because the server emits a `stock:changed` Socket.IO event on every validate, and the React Query client in each window invalidates all inventory queries on receipt.
 
 ---
 
 ## 4. KNOWN LIMITATIONS
 
-Please note the following partial, stubbed, or known incomplete features:
+> Nothing has been exhaustively tested. The following items are partial, stubbed, or not fully aligned with SPEC.md.
 
-- **Notifications & Dashboard "N to Receive" / "N to Deliver":** While the Dashboard correctly displays `pendingReceipts` and `pendingDeliveries`, it does not strictly split them into "Late / Waiting / Operations" as requested in complex variants of `SPEC.md`. The Notification bell is wired to poll these top-level numbers every 10 seconds, but it does not use the Socket.io real-time connection for the dropdown items.
-- **Print Functionality:** The Print button appears when an operation is `DONE`, but the actual PDF/Print layout is stubbed to a basic browser print of the screen.
-- **Settings CRUD:** While Contacts, Locations, and Warehouses have working forms and tables, the UX for inline editing vs modal adding is partially unified. 
-- **My Profile:** The UI allows changing password and profile details, but error states for incorrect "current password" may fall back to generic 400 errors.
-- **Real-time Syncing:** Socket.io emits events on the backend (`stockEngine.ts`), but not all frontend lists (e.g., ReceiptsList, DeliveriesList) aggressively re-fetch on these socket events. Only specific components (like the Dashboard via polling) guarantee updates across multiple browser windows out-of-the-box.
-- **Unverified Status:** None of these features have been heavily tested via automated Playwright E2E tests yet. Bugs may be present in edge cases, especially around multi-line reservations and cancel flows.
+| # | Feature | Status | Details |
+|---|---------|--------|---------|
+| 1 | **Print layout** | ⚠️ Partial | A proper A4 print stylesheet exists (logo, reference, contact, lines, signature). Saving as PDF works via browser Print → Save as PDF. Not tested on all browsers. |
+| 2 | **Settings CRUD** | ⚠️ Partial | Warehouses, Locations, Contacts all have working tables and create/edit modals. Delete buttons exist but may use `alert()` confirmations rather than a custom dialog. |
+| 3 | **My Profile** | ⚠️ Partial | Edit name/email and change-password forms exist. Server-side password validation for incorrect "current password" may return a generic 400 error instead of a friendly message. |
+| 4 | **Notification bell** | ⚠️ Partial | Polls every 10 seconds via React Query. Does not use the Socket.IO real-time channel for the notification dropdown items specifically — changes appear after the next poll cycle rather than instantly. |
+| 5 | **Real-time on list pages** | ⚠️ Partial | `App.tsx` listens to `stock:changed` and `operation:changed` socket events and invalidates all query keys. However, if the server does not emit these events on every operation (e.g., on seeded operations or DB-level changes), a second tab may not update until the next React Query `refetchInterval`. Dashboard polls every 30 s. |
+| 6 | **Delivery form — Available column** | ⚠️ Partial | The Available qty in the products table is computed client-side from product stock quants. It is always shown (not only in edit mode), and insufficient lines are shown in red. |
+| 7 | **Operation form updates** | ⚠️ Partial | Once an operation is created (saved), its header fields (contact, location, date) cannot be edited via the form — only status transitions are supported. A full edit flow would require a PATCH `/operations/:id` endpoint. |
+| 8 | **Receipt form — vendor combobox with "Create new"** | ❌ Missing | The spec calls for a vendor combobox with an inline "create new" option. The current form uses a plain select dropdown. |
+| 9 | **Dashboard filters** | ❌ Missing | The spec calls for dynamic filters (document type, status, warehouse/location, product category) on the dashboard. These are not implemented; the cards always show global counts. |
+| 10 | **Dashboard charts** | ⚠️ Partial | Operations-by-type bar chart is implemented. Stock In vs Out (30-day line chart) and Stock Value by Category (bar chart) are not rendered (the dashboard shows the operations trend bar chart only). |
+| 11 | **Reorder rules UI** | ❌ Missing | Reorder rules are seeded for Desk and Chair, and are used in the Low Stock calculation, but there is no UI page to manage reorder rules. |
+| 12 | **Forgot Password OTP email** | ⚠️ Partial | OTP is generated and hashed on the server. If no SMTP env vars are set, the OTP is printed to the server console log instead of emailed. |
+| 13 | **Mobile responsive layout** | ⚠️ Partial | Sidebar collapses with a toggle button. Tables do not become stacked cards on mobile as specified. |
+| 14 | **No automated tests** | ⚠️ Untested | No Playwright E2E tests have been run. No Vitest unit tests have been run against the current code. All scenarios above are based on code reading, not verified execution. |

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { invalidateInventory } from "@/lib/queryKeys"
 import OperationPrintView from "@/components/operations/OperationPrintView"
 
 export default function DeliveryForm() {
@@ -89,8 +90,13 @@ export default function DeliveryForm() {
   const handleSave = async () => {
     try {
       if (isNew) {
+        const whRes = await fetch("/api/warehouses")
+        const whs = whRes.ok ? await whRes.json() : []
+        const warehouseId = whs[0]?.id
+        if (!warehouseId) { alert("No warehouse configured."); return }
         const payload = {
           type: "DELIVERY",
+          warehouseId,
           contactId: op.contactId || null,
           sourceLocationId: op.sourceLocationId || null,
           scheduleDate: new Date(op.scheduleDate).toISOString(),
@@ -104,6 +110,7 @@ export default function DeliveryForm() {
         })
         if (!res.ok) throw new Error("Failed to save")
         const saved = await res.json()
+        invalidateInventory(queryClient)
         navigate(`/deliveries/${saved.id}`)
       } else {
         alert("Update not fully implemented. Use state transitions.")
@@ -127,6 +134,7 @@ export default function DeliveryForm() {
         }
         return
       }
+      invalidateInventory(queryClient)
       queryClient.invalidateQueries({ queryKey: ["operation", id] })
     } catch (e) {
       console.error(e)

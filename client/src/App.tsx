@@ -5,6 +5,7 @@ import Signup from "./pages/auth/Signup"
 import ForgotPassword from "./pages/auth/ForgotPassword"
 
 import { AuthProvider, useAuth } from "./lib/auth"
+import { invalidateInventory } from "./lib/queryKeys"
 
 import AppLayout from "./components/layout/AppLayout"
 import Dashboard from "./pages/dashboard/Dashboard"
@@ -42,24 +43,34 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
     
-    socket.on("stock-update", () => {
-      queryClient.invalidateQueries({ queryKey: ["stock"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    });
+    const handleInventoryUpdate = () => {
+      invalidateInventory(queryClient);
+    };
 
-    socket.on("operation-update", () => {
-      queryClient.invalidateQueries({ queryKey: ["operations"] });
-      queryClient.invalidateQueries({ queryKey: ["operation"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    });
+    const handleMasterUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouses"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    };
+
+    socket.on("stock-update", handleInventoryUpdate);
+    socket.on("operation-update", handleInventoryUpdate);
+    socket.on("stock:changed", handleInventoryUpdate);
+    socket.on("operation:changed", handleInventoryUpdate);
+    socket.on("master:changed", handleMasterUpdate);
 
     return () => {
-      socket.off("stock-update");
-      socket.off("operation-update");
+      socket.off("stock-update", handleInventoryUpdate);
+      socket.off("operation-update", handleInventoryUpdate);
+      socket.off("stock:changed", handleInventoryUpdate);
+      socket.off("operation:changed", handleInventoryUpdate);
+      socket.off("master:changed", handleMasterUpdate);
     };
   }, [user, queryClient]);
 
-  if (loading) return <div>Loading...</div>; // Could be a nicer spinner
+  if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
@@ -96,7 +107,6 @@ function App() {
             <Route path="settings/profile" element={<Profile />} />
           </Route>
           
-          {/* Default route for now redirects to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

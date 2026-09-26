@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { invalidateInventory } from "@/lib/queryKeys"
 import OperationPrintView from "@/components/operations/OperationPrintView"
 
 export default function ReceiptForm() {
@@ -87,8 +88,14 @@ export default function ReceiptForm() {
   const handleSave = async () => {
     try {
       if (isNew) {
+        // Get first warehouse for new operations
+        const whRes = await fetch("/api/warehouses")
+        const whs = whRes.ok ? await whRes.json() : []
+        const warehouseId = whs[0]?.id
+        if (!warehouseId) { alert("No warehouse configured."); return }
         const payload = {
           type: "RECEIPT",
+          warehouseId,
           contactId: op.contactId || null,
           destLocationId: op.destLocationId || null,
           scheduleDate: new Date(op.scheduleDate).toISOString(),
@@ -102,9 +109,9 @@ export default function ReceiptForm() {
         })
         if (!res.ok) throw new Error("Failed to save")
         const saved = await res.json()
+        invalidateInventory(queryClient)
         navigate(`/receipts/${saved.id}`)
       } else {
-        // Assume update operation endpoint exists or just handle state transitions
         alert("Update not fully implemented. Use state transitions.")
       }
     } catch (e) {
@@ -116,11 +123,15 @@ export default function ReceiptForm() {
   const handleAction = async (action: 'confirm' | 'validate' | 'cancel') => {
     try {
       const res = await fetch(`/api/operations/${id}/${action}`, { method: "POST" })
-      if (!res.ok) throw new Error(`Failed to ${action}`)
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error?.message || `Failed to ${action}`)
+      }
+      invalidateInventory(queryClient)
       queryClient.invalidateQueries({ queryKey: ["operation", id] })
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      alert(`Error performing ${action}`)
+      alert(e.message || `Error performing ${action}`)
     }
   }
 
@@ -248,7 +259,7 @@ export default function ReceiptForm() {
           <div className="grid gap-2">
             <label className="text-sm font-medium">Responsible</label>
             <Input 
-              value={isNew ? user?.fullName || "" : (op.responsible?.fullName || "")} 
+              value={user?.fullName || op.responsible?.fullName || ""} 
               disabled 
               className="bg-muted"
             />
@@ -289,7 +300,7 @@ export default function ReceiptForm() {
                           </SelectTrigger>
                           <SelectContent>
                             {products.map((p: any) => (
-                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                              <SelectItem key={p.id} value={p.id}>[{p.sku}] {p.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
