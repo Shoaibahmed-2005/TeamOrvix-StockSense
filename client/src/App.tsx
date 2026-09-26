@@ -12,6 +12,7 @@ import ProductsList from "./pages/products/ProductsList"
 import CategoriesList from "./pages/products/CategoriesList"
 import StockList from "./pages/products/StockList"
 import ReceiptsList from "./pages/operations/ReceiptsList"
+import ReceiptForm from "./pages/operations/ReceiptForm"
 import DeliveriesList from "./pages/operations/DeliveriesList"
 import InternalTransfersList from "./pages/operations/InternalTransfersList"
 import AdjustmentsList from "./pages/operations/AdjustmentsList"
@@ -68,6 +69,7 @@ function App() {
             <Route path="stock" element={<StockList />} />
             <Route path="categories" element={<CategoriesList />} />
             <Route path="receipts" element={<ReceiptsList />} />
+            <Route path="receipts/:id" element={<ReceiptForm />} />
             <Route path="deliveries" element={<DeliveriesList />} />
             <Route path="internal" element={<InternalTransfersList />} />
             <Route path="adjustments" element={<AdjustmentsList />} />

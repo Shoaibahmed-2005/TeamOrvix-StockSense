@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react"
-import { Plus, Search, Eye } from "lucide-react"
+import { Plus, Search, Eye, LayoutList, LayoutGrid } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -12,44 +20,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
 
 export default function ReceiptsList() {
   const [operations, setOperations] = useState<any[]>([])
   const [search, setSearch] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list")
+  const [statusFilter, setStatusFilter] = useState("ALL")
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchOperations()
   }, [])
 
   const fetchOperations = async () => {
-    const res = await fetch("/api/operations?type=RECEIPT")
-    const data = await res.json()
-    setOperations(data)
-  }
-
-  const handleValidate = async (id: string) => {
     try {
-      const res = await fetch(`/api/operations/${id}/validate`, { method: "POST" })
-      if (!res.ok) throw new Error("Failed to validate")
-      await fetchOperations()
-    } catch (error) {
-      console.error(error)
-      alert("Error validating receipt")
+      const res = await fetch("/api/operations?type=RECEIPT")
+      const data = await res.json()
+      setOperations(data)
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const filtered = operations.filter(op => 
-    op.reference.toLowerCase().includes(search.toLowerCase()) || 
-    op.contact?.name.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = operations.filter(op => {
+    const matchesSearch = op.reference.toLowerCase().includes(search.toLowerCase()) || 
+      (op.contact?.name || "").toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = statusFilter === "ALL" || op.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -64,78 +62,122 @@ export default function ReceiptsList() {
   return (
     <div className="flex flex-col gap-6 h-full">
       <div className="flex items-center justify-between">
-        <div className="relative w-72">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search receipts..." 
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex items-center gap-4">
+          <div className="relative w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by ref or vendor..." 
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "ALL")}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Statuses</SelectItem>
+              <SelectItem value="DRAFT">Draft</SelectItem>
+              <SelectItem value="READY">Ready</SelectItem>
+              <SelectItem value="DONE">Done</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div className="flex items-center border rounded-md">
+            <Button 
+              variant={viewMode === "list" ? "secondary" : "ghost"} 
+              size="icon"
+              className="rounded-none rounded-l-md h-9 w-9"
+              onClick={() => setViewMode("list")}
+            >
+              <LayoutList className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant={viewMode === "kanban" ? "secondary" : "ghost"} 
+              size="icon"
+              className="rounded-none rounded-r-md h-9 w-9"
+              onClick={() => setViewMode("kanban")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+
+        <Button onClick={() => navigate("/receipts/new")}>
           <Plus className="mr-2 h-4 w-4" /> New Receipt
         </Button>
       </div>
 
       <div className="border rounded-md bg-card flex-1 overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Reference</TableHead>
-              <TableHead>Contact (Vendor)</TableHead>
-              <TableHead>Scheduled Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[120px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
+        {viewMode === "list" ? (
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  No receipts found.
-                </TableCell>
+                <TableHead>Reference</TableHead>
+                <TableHead>From</TableHead>
+                <TableHead>To</TableHead>
+                <TableHead>Contact (Vendor)</TableHead>
+                <TableHead>Scheduled Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[80px]"></TableHead>
               </TableRow>
-            ) : (
-              filtered.map((op) => (
-                <TableRow key={op.id}>
-                  <TableCell className="font-medium">{op.reference}</TableCell>
-                  <TableCell>{op.contact?.name || "—"}</TableCell>
-                  <TableCell>{new Date(op.scheduleDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{getStatusBadge(op.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {op.status === 'DRAFT' && (
-                        <Button variant="outline" size="sm" onClick={() => handleValidate(op.id)}>
-                          Validate
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    No receipts found.
                   </TableCell>
                 </TableRow>
+              ) : (
+                filtered.map((op) => (
+                  <TableRow key={op.id} className="cursor-pointer" onClick={() => navigate(`/receipts/${op.id}`)}>
+                    <TableCell className="font-medium">{op.reference}</TableCell>
+                    <TableCell>Partners/Vendors</TableCell>
+                    <TableCell>{op.destLocation?.name || "WH/Stock"}</TableCell>
+                    <TableCell>{op.contact?.name || "—"}</TableCell>
+                    <TableCell>{new Date(op.scheduleDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{getStatusBadge(op.status)}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/receipts/${op.id}`); }}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+            {filtered.length === 0 ? (
+              <div className="col-span-full h-24 flex items-center justify-center text-muted-foreground">
+                No receipts found.
+              </div>
+            ) : (
+              filtered.map((op) => (
+                <div 
+                  key={op.id} 
+                  className="border rounded-lg p-4 flex flex-col gap-3 cursor-pointer hover:border-primary transition-colors bg-background shadow-sm"
+                  onClick={() => navigate(`/receipts/${op.id}`)}
+                >
+                  <div className="flex items-start justify-between">
+                    <span className="font-medium">{op.reference}</span>
+                    {getStatusBadge(op.status)}
+                  </div>
+                  <div className="text-sm text-muted-foreground flex flex-col gap-1">
+                    <div><span className="font-medium">Vendor:</span> {op.contact?.name || "—"}</div>
+                    <div><span className="font-medium">To:</span> {op.destLocation?.name || "WH/Stock"}</div>
+                    <div><span className="font-medium">Date:</span> {new Date(op.scheduleDate).toLocaleDateString()}</div>
+                  </div>
+                </div>
               ))
             )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>New Receipt</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 text-sm text-muted-foreground">
-            Form implementation goes here...
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button type="button">Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </div>
   )
 }
