@@ -26,6 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { NotificationsPopover } from "./NotificationsPopover"
+
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
@@ -158,13 +160,7 @@ export default function AppLayout() {
             {location.pathname === "/" ? "Dashboard" : location.pathname.split("/").filter(Boolean).join(" / ")}
           </h2>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bell"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-            </Button>
+            <NotificationsPopover />
           </div>
         </header>
         <div className="flex-1 overflow-auto p-6 print:overflow-visible print:p-0">

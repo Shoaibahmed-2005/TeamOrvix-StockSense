@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth"
-import { socket } from "@/App"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import OperationPrintView from "@/components/operations/OperationPrintView"
 
 export default function ReceiptForm() {
@@ -39,58 +39,50 @@ export default function ReceiptForm() {
     lines: []
   })
   
-  const [contacts, setContacts] = useState<any[]>([])
-  const [locations, setLocations] = useState<any[]>([])
-  const [products, setProducts] = useState<any[]>([])
-  
-  useEffect(() => {
-    fetchDependencies()
-    if (!isNew) {
-      fetchOperation()
-    }
-  }, [id])
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    const handleUpdate = () => {
-      if (!isNew) fetchOperation()
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts"],
+    queryFn: async () => {
+      const res = await fetch("/api/contacts")
+      return res.ok ? res.json() : []
     }
-    socket.on("operation-update", handleUpdate)
-    return () => {
-      socket.off("operation-update", handleUpdate)
-    }
-  }, [isNew])
+  })
 
-  const fetchDependencies = async () => {
-    try {
-      const [cRes, lRes, pRes] = await Promise.all([
-        fetch("/api/contacts"),
-        fetch("/api/locations"),
-        fetch("/api/products")
-      ])
-      
-      // Fallback to empty arrays if endpoints don't exist yet
-      if (cRes.ok) setContacts(await cRes.json())
-      if (lRes.ok) setLocations(await lRes.json())
-      if (pRes.ok) setProducts(await pRes.json())
-    } catch (e) {
-      console.error(e)
+  const { data: locations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const res = await fetch("/api/locations")
+      return res.ok ? res.json() : []
     }
-  }
+  })
 
-  const fetchOperation = async () => {
-    try {
+  const { data: products = [] } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await fetch("/api/products")
+      return res.ok ? res.json() : []
+    }
+  })
+
+  const { data: operationData } = useQuery({
+    queryKey: ["operation", id],
+    queryFn: async () => {
       const res = await fetch(`/api/operations/${id}`)
       if (!res.ok) throw new Error("Not found")
-      const data = await res.json()
+      return res.json()
+    },
+    enabled: !isNew
+  })
+
+  useEffect(() => {
+    if (operationData) {
       setOp({
-        ...data,
-        scheduleDate: data.scheduleDate ? new Date(data.scheduleDate).toISOString().slice(0, 16) : ""
+        ...operationData,
+        scheduleDate: operationData.scheduleDate ? new Date(operationData.scheduleDate).toISOString().slice(0, 16) : ""
       })
-    } catch (e) {
-      console.error(e)
-      navigate("/receipts")
     }
-  }
+  }, [operationData])
 
   const handleSave = async () => {
     try {
@@ -125,7 +117,7 @@ export default function ReceiptForm() {
     try {
       const res = await fetch(`/api/operations/${id}/${action}`, { method: "POST" })
       if (!res.ok) throw new Error(`Failed to ${action}`)
-      fetchOperation()
+      queryClient.invalidateQueries({ queryKey: ["operation", id] })
     } catch (e) {
       console.error(e)
       alert(`Error performing ${action}`)
@@ -218,7 +210,7 @@ export default function ReceiptForm() {
                 <SelectValue placeholder="Select Vendor" />
               </SelectTrigger>
               <SelectContent>
-                {contacts.filter(c => c.type === 'VENDOR').map(c => (
+                {contacts.filter((c: any) => c.type === 'VENDOR').map((c: any) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -235,7 +227,7 @@ export default function ReceiptForm() {
                 <SelectValue placeholder="Select Location" />
               </SelectTrigger>
               <SelectContent>
-                {locations.filter(l => l.type === 'INTERNAL').map(l => (
+                {locations.filter((l: any) => l.type === 'INTERNAL').map((l: any) => (
                   <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -296,13 +288,13 @@ export default function ReceiptForm() {
                             <SelectValue placeholder="Select Product" />
                           </SelectTrigger>
                           <SelectContent>
-                            {products.map(p => (
+                            {products.map((p: any) => (
                               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <span>{line.product?.name || products.find(p => p.id === line.productId)?.name}</span>
+                        <span>{line.product?.name || products.find((p: any) => p.id === line.productId)?.name}</span>
                       )}
                     </TableCell>
                     <TableCell>

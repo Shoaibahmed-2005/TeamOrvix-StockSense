@@ -49,6 +49,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
     socket.on("operation-update", () => {
       queryClient.invalidateQueries({ queryKey: ["operations"] });
+      queryClient.invalidateQueries({ queryKey: ["operation"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 

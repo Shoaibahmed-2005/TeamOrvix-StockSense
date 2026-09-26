@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Plus, Search, Eye, LayoutList, LayoutGrid } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
@@ -21,31 +21,40 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { useQuery } from "@tanstack/react-query"
+
 export default function InternalTransfersList() {
-  const [operations, setOperations] = useState<any[]>([])
   const [search, setSearch] = useState("")
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const navigate = useNavigate()
 
-  useEffect(() => {
-    fetchOperations()
-  }, [])
-
-  const fetchOperations = async () => {
-    try {
+  const { data: operations = [] } = useQuery({
+    queryKey: ["operations", "INTERNAL"],
+    queryFn: async () => {
       const res = await fetch("/api/operations?type=INTERNAL")
-      const data = await res.json()
-      setOperations(data)
-    } catch (e) {
-      console.error(e)
+      if (!res.ok) throw new Error("Failed to fetch")
+      return res.json()
     }
-  }
+  })
 
-  const filtered = operations.filter(op => {
+  const { data: locations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const res = await fetch("/api/locations")
+      return res.ok ? res.json() : []
+    }
+  })
+
+  const [locationFilter, setLocationFilter] = useState("ALL")
+  const [dateFilter, setDateFilter] = useState("")
+
+  const filtered = operations.filter((op: any) => {
     const matchesSearch = op.reference.toLowerCase().includes(search.toLowerCase())
     const matchesStatus = statusFilter === "ALL" || op.status === statusFilter
-    return matchesSearch && matchesStatus
+    const matchesLocation = locationFilter === "ALL" || op.sourceLocationId === locationFilter || op.destLocationId === locationFilter
+    const matchesDate = !dateFilter || new Date(op.scheduleDate).toISOString().slice(0, 10) === dateFilter
+    return matchesSearch && matchesStatus && matchesLocation && matchesDate
   })
 
   const getStatusBadge = (status: string) => {
@@ -62,7 +71,7 @@ export default function InternalTransfersList() {
   return (
     <div className="flex flex-col gap-6 h-full">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="relative w-72">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -73,8 +82,8 @@ export default function InternalTransfersList() {
             />
           </div>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "ALL")}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Status" />
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Statuses</SelectItem>
@@ -85,6 +94,25 @@ export default function InternalTransfersList() {
               <SelectItem value="CANCELLED">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={locationFilter} onValueChange={(v) => setLocationFilter(v || "ALL")}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Locations</SelectItem>
+              {locations.filter((l: any) => l.type === 'INTERNAL').map((l: any) => (
+                <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input 
+            type="date" 
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-[160px]"
+          />
           
           <div className="flex items-center border rounded-md">
             <Button 
@@ -132,7 +160,7 @@ export default function InternalTransfersList() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((op) => (
+                filtered.map((op: any) => (
                   <TableRow key={op.id} className="cursor-pointer" onClick={() => navigate(`/internal/${op.id}`)}>
                     <TableCell className="font-medium">{op.reference}</TableCell>
                     <TableCell>{op.sourceLocation?.name || "—"}</TableCell>
@@ -156,7 +184,7 @@ export default function InternalTransfersList() {
                 No transfers found.
               </div>
             ) : (
-              filtered.map((op) => (
+              filtered.map((op: any) => (
                 <div 
                   key={op.id} 
                   className="border rounded-lg p-4 flex flex-col gap-3 cursor-pointer hover:border-primary transition-colors bg-background shadow-sm"

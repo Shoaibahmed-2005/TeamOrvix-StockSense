@@ -130,3 +130,101 @@ authRouter.get('/me', async (req, res, next) => {
     next(err);
   }
 });
+
+// ─── POST /api/auth/forgot-password ──────────────────────────────────────────
+authRouter.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Email is required' } });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't leak whether email exists
+      res.json({ message: 'If the email exists, an OTP was sent' });
+      return;
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+    const otpHash = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    await prisma.passwordResetOtp.create({
+      data: {
+        userId: user.id,
+        otpHash,
+        expiresAt,
+      }
+    });
+
+    // In a real app, send email here. For now, we will log it.
+    console.log(`[DEV] OTP for ${email} is ${otp}`);
+
+    res.json({ message: 'If the email exists, an OTP was sent' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── POST /api/auth/reset-password ───────────────────────────────────────────
+authRouter.post('/reset-password', async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword || newPassword.length < 8) {
+      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invalid input' } });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invalid OTP or email' } });
+      return;
+    }
+
+    // Find latest active OTP
+    const otps = await prisma.passwordResetOtp.findMany({
+      where: {
+        userId: user.id,
+        used: false,
+        expiresAt: { gt: new Date() }
+      },
+      orderBy: { expiresAt: 'desc' },
+      take: 1
+    });
+
+    if (otps.length === 0) {
+      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invalid or expired OTP' } });
+      return;
+    }
+
+    const activeOtp = otps[0];
+    const match = await bcrypt.compare(otp, activeOtp.otpHash);
+    if (!match) {
+      await prisma.passwordResetOtp.update({
+        where: { id: activeOtp.id },
+        data: { attempts: activeOtp.attempts + 1 }
+      });
+      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Invalid OTP' } });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash }
+      }),
+      prisma.passwordResetOtp.update({
+        where: { id: activeOtp.id },
+        data: { used: true }
+      })
+    ]);
+
+    res.json({ message: 'Password reset successful' });
+  } catch (err) {
+    next(err);
+  }
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Plus, Edit } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,25 +23,26 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function CategoriesList() {
-  const [categories, setCategories] = useState<any[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<any | null>(null)
+  const queryClient = useQueryClient()
 
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<CategoryInput>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: "" }
   })
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  const fetchCategories = async () => {
-    const res = await fetch("/api/categories")
-    const data = await res.json()
-    setCategories(data)
-  }
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await fetch("/api/categories")
+      if (!res.ok) throw new Error("Failed to fetch")
+      return res.json()
+    }
+  })
 
   const handleEdit = (cat: any) => {
     setEditingCategory(cat)
@@ -66,7 +67,7 @@ export default function CategoriesList() {
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error("Failed to save category")
-      await fetchCategories()
+      await queryClient.invalidateQueries({ queryKey: ["categories"] })
       setIsDialogOpen(false)
     } catch (error) {
       console.error(error)
@@ -98,7 +99,7 @@ export default function CategoriesList() {
                 </TableCell>
               </TableRow>
             ) : (
-              categories.map((cat) => (
+              categories.map((cat: any) => (
                 <TableRow key={cat.id}>
                   <TableCell className="font-medium">{cat.name}</TableCell>
                   <TableCell>

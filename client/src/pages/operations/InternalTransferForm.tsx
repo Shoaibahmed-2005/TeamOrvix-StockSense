@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth"
-import { socket } from "@/App"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import OperationPrintView from "@/components/operations/OperationPrintView"
 
 export default function InternalTransferForm() {
@@ -39,55 +39,44 @@ export default function InternalTransferForm() {
     lines: []
   })
   
-  const [locations, setLocations] = useState<any[]>([])
-  const [products, setProducts] = useState<any[]>([])
-  const [errorToast, setErrorToast] = useState<string | null>(null)
-  
-  useEffect(() => {
-    fetchDependencies()
-    if (!isNew) {
-      fetchOperation()
-    }
-  }, [id])
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    const handleUpdate = () => {
-      if (!isNew) fetchOperation()
+  const { data: locations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const res = await fetch("/api/locations")
+      return res.ok ? res.json() : []
     }
-    socket.on("operation-update", handleUpdate)
-    return () => {
-      socket.off("operation-update", handleUpdate)
-    }
-  }, [isNew])
+  })
 
-  const fetchDependencies = async () => {
-    try {
-      const [lRes, pRes] = await Promise.all([
-        fetch("/api/locations"),
-        fetch("/api/products")
-      ])
-      
-      if (lRes.ok) setLocations(await lRes.json())
-      if (pRes.ok) setProducts(await pRes.json())
-    } catch (e) {
-      console.error(e)
+  const { data: products = [] } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await fetch("/api/products")
+      return res.ok ? res.json() : []
     }
-  }
+  })
 
-  const fetchOperation = async () => {
-    try {
+  const { data: operationData } = useQuery({
+    queryKey: ["operation", id],
+    queryFn: async () => {
       const res = await fetch(`/api/operations/${id}`)
       if (!res.ok) throw new Error("Not found")
-      const data = await res.json()
+      return res.json()
+    },
+    enabled: !isNew
+  })
+
+  const [errorToast, setErrorToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (operationData) {
       setOp({
-        ...data,
-        scheduleDate: data.scheduleDate ? new Date(data.scheduleDate).toISOString().slice(0, 16) : ""
+        ...operationData,
+        scheduleDate: operationData.scheduleDate ? new Date(operationData.scheduleDate).toISOString().slice(0, 16) : ""
       })
-    } catch (e) {
-      console.error(e)
-      navigate("/internal")
     }
-  }
+  }, [operationData])
 
   const handleSave = async () => {
     try {
@@ -130,7 +119,7 @@ export default function InternalTransferForm() {
         }
         return
       }
-      fetchOperation()
+      queryClient.invalidateQueries({ queryKey: ["operation", id] })
     } catch (e) {
       console.error(e)
       alert(`Error performing ${action}`)
@@ -243,7 +232,7 @@ export default function InternalTransferForm() {
                 <SelectValue placeholder="Select Source Location" />
               </SelectTrigger>
               <SelectContent>
-                {locations.filter(l => l.type === 'INTERNAL').map(l => (
+                {locations.filter((l: any) => l.type === 'INTERNAL').map((l: any) => (
                   <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -260,7 +249,7 @@ export default function InternalTransferForm() {
                 <SelectValue placeholder="Select Destination Location" />
               </SelectTrigger>
               <SelectContent>
-                {locations.filter(l => l.type === 'INTERNAL').map(l => (
+                {locations.filter((l: any) => l.type === 'INTERNAL').map((l: any) => (
                   <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -321,13 +310,13 @@ export default function InternalTransferForm() {
                             <SelectValue placeholder="Select Product" />
                           </SelectTrigger>
                           <SelectContent>
-                            {products.map(p => (
+                            {products.map((p: any) => (
                               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <span>{line.product?.name || products.find(p => p.id === line.productId)?.name}</span>
+                        <span>{line.product?.name || products.find((p: any) => p.id === line.productId)?.name}</span>
                       )}
                     </TableCell>
                     <TableCell>

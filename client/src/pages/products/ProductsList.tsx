@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Plus, Search, Edit } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -30,12 +30,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+
 export default function ProductsList() {
-  const [products, setProducts] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
   const [search, setSearch] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<any | null>(null)
+  const queryClient = useQueryClient()
 
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<ProductInput>({
     resolver: zodResolver(productSchema),
@@ -48,22 +49,31 @@ export default function ProductsList() {
     }
   })
 
-  useEffect(() => {
-    fetchProducts()
-    fetchCategories()
-  }, [])
+  const { data: products = [] } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await fetch("/api/products")
+      if (!res.ok) throw new Error("Failed to fetch")
+      return res.json()
+    }
+  })
 
-  const fetchProducts = async () => {
-    const res = await fetch("/api/products")
-    const data = await res.json()
-    setProducts(data)
-  }
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await fetch("/api/categories")
+      if (!res.ok) throw new Error("Failed to fetch")
+      return res.json()
+    }
+  })
 
-  const fetchCategories = async () => {
-    const res = await fetch("/api/categories")
-    const data = await res.json()
-    setCategories(data)
-  }
+  const { data: locations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const res = await fetch("/api/locations")
+      return res.ok ? res.json() : []
+    }
+  })
 
   const handleEdit = (product: any) => {
     setEditingProduct(product)
@@ -77,7 +87,7 @@ export default function ProductsList() {
 
   const handleAddNew = () => {
     setEditingProduct(null)
-    reset({ name: "", sku: "", categoryId: null, uom: "Units", unitCost: 0 })
+    reset({ name: "", sku: "", categoryId: null, uom: "Units", unitCost: 0, initialQty: 0, initialLocationId: null })
     setIsDialogOpen(true)
   }
 
@@ -92,7 +102,7 @@ export default function ProductsList() {
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error("Failed to save product")
-      await fetchProducts()
+      await queryClient.invalidateQueries({ queryKey: ["products"] })
       setIsDialogOpen(false)
     } catch (error) {
       console.error(error)
@@ -100,7 +110,7 @@ export default function ProductsList() {
     }
   }
 
-  const filtered = products.filter(p => 
+  const filtered = products.filter((p: any) => 
     p.name.toLowerCase().includes(search.toLowerCase()) || 
     p.sku.toLowerCase().includes(search.toLowerCase())
   )
@@ -142,7 +152,7 @@ export default function ProductsList() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((product) => (
+              filtered.map((product: any) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.sku}</TableCell>
                   <TableCell>{product.name}</TableCell>
@@ -188,7 +198,7 @@ export default function ProductsList() {
                     <SelectValue placeholder="Select category..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((c) => (
+                    {categories.map((c: any) => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -216,6 +226,52 @@ export default function ProductsList() {
               <Input id="unitCost" type="number" step="0.01" {...register("unitCost", { valueAsNumber: true })} />
               {errors.unitCost && <span className="text-xs text-destructive">{errors.unitCost.message}</span>}
             </div>
+
+            {!editingProduct && (
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label htmlFor="initialQty">Initial Stock (Optional)</Label>
+                  <Input id="initialQty" type="number" min="0" {...register("initialQty", { valueAsNumber: true })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="initialLocationId">Initial Location</Label>
+                  {/* @ts-ignore */}
+                  <Select onValueChange={(val: any) => setValue("initialLocationId", val || null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select location..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.filter((l: any) => l.type === 'INTERNAL').map((l: any) => (
+                        <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {editingProduct && editingProduct.stockQuants && editingProduct.stockQuants.length > 0 && (
+              <div className="pt-4 border-t space-y-3">
+                <Label className="text-base">Stock Details</Label>
+                <div className="rounded-md border bg-muted/50 p-3 space-y-2">
+                  {editingProduct.stockQuants.map((sq: any) => (
+                    <div key={sq.id} className="flex justify-between items-center text-sm">
+                      <span>{sq.location?.name || "Unknown Location"}</span>
+                      <div className="flex gap-4">
+                        <span className="font-medium">{Number(sq.quantity)} Available</span>
+                        {Number(sq.reserved_quantity) > 0 && (
+                          <span className="text-muted-foreground">{Number(sq.reserved_quantity)} Reserved</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center pt-2 border-t text-sm font-bold">
+                    <span>Total</span>
+                    <span>{editingProduct.stockQuants.reduce((acc: number, sq: any) => acc + Number(sq.quantity), 0)} Available</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
