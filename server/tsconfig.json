@@ -8,10 +8,7 @@
     "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
-    "paths": {
-      "@stocksense/shared": ["../shared/src/index.ts"]
-    }
+    "declaration": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
