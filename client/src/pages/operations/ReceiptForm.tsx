@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth"
 import { socket } from "@/App"
+import OperationPrintView from "@/components/operations/OperationPrintView"
 
 export default function ReceiptForm() {
   const { id } = useParams()
@@ -151,7 +152,9 @@ export default function ReceiptForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12">
+    <>
+      <OperationPrintView op={op} />
+      <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12 print:hidden">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/receipts")}>
           <ArrowLeft className="h-4 w-4" />
@@ -350,5 +353,6 @@ export default function ReceiptForm() {
         )}
       </div>
     </div>
+    </>
   )
 }

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth"
 import { socket } from "@/App"
+import OperationPrintView from "@/components/operations/OperationPrintView"
 
 export default function DeliveryForm() {
   const { id } = useParams()
@@ -159,7 +160,9 @@ export default function DeliveryForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12 relative">
+    <>
+      <OperationPrintView op={op} />
+      <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12 relative print:hidden">
       {errorToast && (
         <div className="fixed bottom-4 right-4 bg-destructive text-destructive-foreground p-4 rounded-md shadow-lg flex items-center gap-3">
           <AlertCircle className="h-5 w-5" />
@@ -383,5 +386,6 @@ export default function DeliveryForm() {
         )}
       </div>
     </div>
+    </>
   )
 }
