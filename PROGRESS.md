@@ -24,11 +24,11 @@
 - ✅ Protected routes, /me session check
 - ✅ Commit + push to main
 
-## ⏳ M2 — App Shell + Settings
+## ✅ M2 — App Shell + Settings
 - ✅ App shell layout (sidebar, header, 21st component)
 - ✅ Theme toggle
-- ⏳ Profile menu
-- ⏳ Settings Pages (Warehouses, Locations, Contacts)
+- ✅ Profile menu
+- ✅ Settings Pages (Warehouses, Locations, Contacts)
 
 ## ✅ M3 — Products, Categories, Stock
 - ✅ Categories CRUD
@@ -56,7 +56,7 @@
 ## ✅ M7 — Move History + Dashboard + Notifications
 - ✅ Move History view
 - ✅ Dashboard overview (stats)
-- ⏳ Real-time notifications (moved to M8)
+- ✅ Real-time notifications
 
 ## ✅ M8 — Real-time Sync
 - ✅ Socket.io integration on server
