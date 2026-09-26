@@ -43,8 +43,10 @@
 - ✅ Status transition enforcement
 - ✅ Receipt validate, Delivery confirm/validate, Internal transfer, Adjustment, Cancel
 
-## ⏳ M5 — Receipts + Deliveries UI
-(Not started)
+## ✅ M5 — Receipts + Deliveries UI
+- ✅ Receipts list view
+- ✅ Deliveries list view
+- ✅ Confirm/Validate actions connected to API
 
 ## ⏳ M6 — Internal Transfers + Adjustments UI
 (Not started)
