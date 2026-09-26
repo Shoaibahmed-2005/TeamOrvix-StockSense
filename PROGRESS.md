@@ -1,22 +1,28 @@
 # Stocksense Progress
 
-## ⏳ M0 — Scaffold
+## ✅ M0 — Scaffold
 - ✅ Init monorepo (`package.json` with workspaces)
-- ⏳ Setup `client/` with Vite + React 18 + TypeScript + Tailwind + shadcn/ui
+- ✅ Setup `client/` with Vite + React 18 + TypeScript + Tailwind + shadcn/ui
 - ✅ Setup `server/` with Express + TypeScript + Prisma (PostgreSQL)
 - ✅ Setup `shared/` with shared zod schemas + types
 - ✅ Prisma schema with all models (PostgreSQL with native enums, Timestamptz, Decimal types, and Check Constraints)
 - ✅ First migration + seed script
-- ⏳ Copy logo to `client/public/logo.png`, generate square favicon icon
+- ✅ Copy logo to `client/public/logo.png`, generate square favicon icon
 - ✅ README.md, PROGRESS.md, .gitignore, .env.example
 - ✅ Root scripts: dev (concurrently), build, test, lint, db:reset
 - ✅ Setup Vitest (server API tests, concurrency + serialization tests pass)
-- ⏳ Setup Playwright (E2E test scaffold)
-- ⏳ Verify `npm run dev` runs both apps
-- ⏳ Commit + push to main
+- ✅ Setup Playwright (E2E test scaffold)
+- ✅ Verify `npm run dev` runs both apps
+- ✅ Commit + push to main
 
-## ⏳ M1 — Auth
-(Not started)
+## ✅ M1 — Auth
+- ✅ Auth API (login by Login ID, signup, me, logout)
+- ✅ Auth UI layout (21st component)
+- ✅ Forms connected with react-hook-form + zod
+- ✅ Signup rules (live checklist)
+- ✅ OTP forgot password (UI wired, API mocked)
+- ✅ Protected routes, /me session check
+- ✅ Commit + push to main
 
 ## ⏳ M2 — App Shell + Settings
 (Not started)
