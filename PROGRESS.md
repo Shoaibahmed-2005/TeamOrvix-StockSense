@@ -48,8 +48,10 @@
 - ✅ Deliveries list view
 - ✅ Confirm/Validate actions connected to API
 
-## ⏳ M6 — Internal Transfers + Adjustments UI
-(Not started)
+## ✅ M6 — Internal Transfers + Adjustments UI
+- ✅ Internal Transfers list view
+- ✅ Adjustments list view
+- ✅ Validate actions connected to API
 
 ## ⏳ M7 — Move History + Dashboard + Notifications
 (Not started)

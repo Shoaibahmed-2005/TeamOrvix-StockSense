@@ -12,6 +12,8 @@ import CategoriesList from "./pages/products/CategoriesList"
 import StockList from "./pages/products/StockList"
 import ReceiptsList from "./pages/operations/ReceiptsList"
 import DeliveriesList from "./pages/operations/DeliveriesList"
+import InternalTransfersList from "./pages/operations/InternalTransfersList"
+import AdjustmentsList from "./pages/operations/AdjustmentsList"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -38,8 +40,8 @@ function App() {
             <Route path="categories" element={<CategoriesList />} />
             <Route path="receipts" element={<ReceiptsList />} />
             <Route path="deliveries" element={<DeliveriesList />} />
-            <Route path="internal" element={<div>Internal Transfers</div>} />
-            <Route path="adjustments" element={<div>Adjustments</div>} />
+            <Route path="internal" element={<InternalTransfersList />} />
+            <Route path="adjustments" element={<AdjustmentsList />} />
             <Route path="history" element={<div>Move History</div>} />
             <Route path="settings/*" element={<div>Settings</div>} />
           </Route>
