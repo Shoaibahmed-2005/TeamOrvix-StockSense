@@ -7,6 +7,9 @@ import ForgotPassword from "./pages/auth/ForgotPassword"
 import { AuthProvider, useAuth } from "./lib/auth"
 
 import AppLayout from "./components/layout/AppLayout"
+import ProductsList from "./pages/products/ProductsList"
+import CategoriesList from "./pages/products/CategoriesList"
+import StockList from "./pages/products/StockList"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,9 +31,9 @@ function App() {
           
           <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<div>Dashboard</div>} />
-            <Route path="products" element={<div>Products</div>} />
-            <Route path="stock" element={<div>Stock</div>} />
-            <Route path="categories" element={<div>Categories</div>} />
+            <Route path="products" element={<ProductsList />} />
+            <Route path="stock" element={<StockList />} />
+            <Route path="categories" element={<CategoriesList />} />
             <Route path="receipts" element={<div>Receipts</div>} />
             <Route path="deliveries" element={<div>Deliveries</div>} />
             <Route path="internal" element={<div>Internal Transfers</div>} />

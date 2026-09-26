@@ -30,8 +30,11 @@
 - ⏳ Profile menu
 - ⏳ Settings Pages (Warehouses, Locations, Contacts)
 
-## ⏳ M3 — Products, Categories, Stock
-(Not started)
+## ✅ M3 — Products, Categories, Stock
+- ✅ Categories CRUD
+- ✅ Products CRUD (with Unit Cost, UoM)
+- ✅ Stock view (Quantity, Reserved, Available)
+- ✅ Inline stock update (creates ADJUSTMENT operation)
 
 ## ⏳ M4 — Operations Engine (Server)
 - ✅ Atomic reference sequences generation via `UPDATE ... RETURNING`
