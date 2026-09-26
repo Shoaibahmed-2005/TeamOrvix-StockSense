@@ -4,9 +4,9 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
 import { authRouter } from './routes/auth.js';
-// import { warehousesRouter } from './routes/warehouses.js';
-// import { locationsRouter } from './routes/locations.js';
-// import { contactsRouter } from './routes/contacts.js';
+import { warehousesRouter } from './routes/warehouses.js';
+import { locationsRouter } from './routes/locations.js';
+import { contactsRouter } from './routes/contacts.js';
 import { categoryRouter } from './routes/categories.js';
 import { productRouter } from './routes/products.js';
 import { stockRouter } from './routes/stock.js';
@@ -44,9 +44,9 @@ app.use('/api/auth', authRouter);
 
 // ─── Protected routes ─────────────────────────────────────────────────────────
 app.use('/api', requireAuth);
-// app.use('/api/warehouses', warehousesRouter);
-// app.use('/api/locations', locationsRouter);
-// app.use('/api/contacts', contactsRouter);
+app.use('/api/warehouses', warehousesRouter);
+app.use('/api/locations', locationsRouter);
+app.use('/api/contacts', contactsRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/products', productRouter);
 app.use('/api/stock', stockRouter);

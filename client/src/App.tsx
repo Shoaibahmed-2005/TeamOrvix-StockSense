@@ -20,6 +20,9 @@ import InternalTransferForm from "./pages/operations/InternalTransferForm"
 import AdjustmentsList from "./pages/operations/AdjustmentsList"
 import AdjustmentForm from "./pages/operations/AdjustmentForm"
 import MoveHistory from "./pages/operations/MoveHistory"
+import Warehouses from "./pages/settings/Warehouses"
+import Locations from "./pages/settings/Locations"
+import Contacts from "./pages/settings/Contacts"
 import { io } from "socket.io-client"
 import { useEffect } from "react"
 
@@ -80,7 +83,9 @@ function App() {
             <Route path="adjustments" element={<AdjustmentsList />} />
             <Route path="adjustments/:id" element={<AdjustmentForm />} />
             <Route path="history" element={<MoveHistory />} />
-            <Route path="settings/*" element={<div>Settings</div>} />
+            <Route path="settings/warehouses" element={<Warehouses />} />
+            <Route path="settings/locations" element={<Locations />} />
+            <Route path="settings/contacts" element={<Contacts />} />
           </Route>
           
           {/* Default route for now redirects to login */}
