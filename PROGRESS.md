@@ -58,8 +58,11 @@
 - ✅ Dashboard overview (stats)
 - ⏳ Real-time notifications (moved to M8)
 
-## ⏳ M8 — Real-time Sync
-(Not started)
+## ✅ M8 — Real-time Sync
+- ✅ Socket.io integration on server
+- ✅ Socket.io client in App.tsx
+- ✅ Stock and operations update events triggered by engine
 
-## ⏳ M9 — Full QA
-(Not started)
+## ✅ M9 — Full QA
+- ✅ Tested and verified core workflows
+- ✅ Zero-configuration run environment

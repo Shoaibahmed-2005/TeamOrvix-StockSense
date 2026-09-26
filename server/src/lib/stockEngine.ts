@@ -1,4 +1,5 @@
 import { PrismaClient, OperationType, OperationStatus, MoveDirection } from '@prisma/client';
+import { io } from '../index.js';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,11 @@ export class InvalidStatusError extends Error {
     this.name = 'InvalidStatusError';
   }
 }
+
+const emitUpdate = () => {
+  io.emit('stock-update');
+  io.emit('operation-update');
+};
 
 /**
  * Generates the next sequence reference atomically.
@@ -125,7 +131,7 @@ async function updateStockQuant(
  */
 export const stockEngine = {
   createOperation: async (data: any, userId?: string) => {
-    return await prisma.$transaction(async (tx) => {
+    const op = await prisma.$transaction(async (tx) => {
       let opCode = '';
       if (data.type === 'RECEIPT') opCode = 'IN';
       else if (data.type === 'DELIVERY') opCode = 'OUT';
@@ -166,10 +172,12 @@ export const stockEngine = {
       
       return op;
     });
+    emitUpdate();
+    return op;
   },
 
   confirmOperation: async (operationId: string) => {
-    return await prisma.$transaction(async (tx) => {
+    const op = await prisma.$transaction(async (tx) => {
       const op = await tx.operation.findUnique({
         where: { id: operationId },
         include: { lines: true }
@@ -223,10 +231,12 @@ export const stockEngine = {
         });
       }
     });
+    emitUpdate();
+    return op;
   },
 
   validateOperation: async (operationId: string, userId?: string) => {
-    return await prisma.$transaction(async (tx) => {
+    const op = await prisma.$transaction(async (tx) => {
       const op = await tx.operation.findUnique({
         where: { id: operationId },
         include: { lines: true, sourceLocation: true, destLocation: true }
@@ -298,14 +308,6 @@ export const stockEngine = {
           });
         }
         else if (op.type === 'ADJUSTMENT' && op.destLocationId) {
-          // For adjustment, countedQuantity is the absolute difference if it's an inline update,
-          // Wait, in my stock list inline update, I sent `quantity` as difference and `countedQuantity` as the new absolute quantity.
-          // But actually, adjustment can be + or -.
-          // If the user's inline edit is newQty=10 and oldQty=15, the difference is -5.
-          // Wait, the UI sent `Math.abs(editQty - s.quantity)` as quantity. But how do we know direction?
-          // Let's refine Adjustment: 
-          // If `countedQuantity` is provided, we use it as the TARGET absolute quantity.
-          // If not, we just add `quantity`.
           let diff = qtyToMove;
           if (line.countedQuantity !== null) {
             const quant = await lockStockQuant(tx, line.productId, op.destLocationId);
@@ -338,10 +340,12 @@ export const stockEngine = {
         }
       });
     });
+    emitUpdate();
+    return op;
   },
 
   cancelOperation: async (operationId: string) => {
-    return await prisma.$transaction(async (tx) => {
+    const op = await prisma.$transaction(async (tx) => {
       const op = await tx.operation.findUnique({
         where: { id: operationId },
         include: { lines: true }
@@ -365,5 +369,7 @@ export const stockEngine = {
         data: { status: 'CANCELLED' }
       });
     });
+    emitUpdate();
+    return op;
   }
 };
