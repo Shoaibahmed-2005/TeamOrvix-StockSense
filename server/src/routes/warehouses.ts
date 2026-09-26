@@ -17,9 +17,9 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { name, code } = req.body;
+    const { name, shortCode, address } = req.body;
     const warehouse = await prisma.warehouse.create({
-      data: { name, code, companyId: "cm1p1q0r80000abc123456789" } // using seed companyId for simplicity
+      data: { name, shortCode, address }
     });
     res.status(201).json(warehouse);
   } catch (error) {
@@ -29,10 +29,10 @@ router.post("/", async (req, res, next) => {
 
 router.put("/:id", async (req, res, next) => {
   try {
-    const { name, code } = req.body;
+    const { name, shortCode, address } = req.body;
     const warehouse = await prisma.warehouse.update({
       where: { id: req.params.id },
-      data: { name, code }
+      data: { name, shortCode, address }
     });
     res.json(warehouse);
   } catch (error) {

@@ -19,7 +19,7 @@ router.post("/", async (req, res, next) => {
   try {
     const { name, email, phone, type, address } = req.body;
     const contact = await prisma.contact.create({
-      data: { name, email, phone, type, address, companyId: "cm1p1q0r80000abc123456789" }
+      data: { name, email, phone, type, address }
     });
     res.status(201).json(contact);
   } catch (error) {

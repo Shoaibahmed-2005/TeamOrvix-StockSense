@@ -7,7 +7,7 @@ const router = Router();
 router.get("/", async (req, res, next) => {
   try {
     const locations = await prisma.location.findMany({
-      include: { parent: true, warehouse: true },
+      include: { warehouse: true },
       orderBy: { name: 'asc' }
     });
     res.json(locations);
@@ -18,9 +18,9 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { name, type, warehouseId, parentId } = req.body;
+    const { name, type, warehouseId, shortCode } = req.body;
     const location = await prisma.location.create({
-      data: { name, type, warehouseId, parentId }
+      data: { name, type, warehouseId, shortCode }
     });
     res.status(201).json(location);
   } catch (error) {
@@ -30,10 +30,10 @@ router.post("/", async (req, res, next) => {
 
 router.put("/:id", async (req, res, next) => {
   try {
-    const { name, type, warehouseId, parentId } = req.body;
+    const { name, type, warehouseId, shortCode } = req.body;
     const location = await prisma.location.update({
       where: { id: req.params.id },
-      data: { name, type, warehouseId, parentId }
+      data: { name, type, warehouseId, shortCode }
     });
     res.json(location);
   } catch (error) {

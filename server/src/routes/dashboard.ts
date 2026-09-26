@@ -35,7 +35,7 @@ router.get("/stats", async (req, res, next) => {
     // Recent moves
     const recentMoves = await prisma.stockMove.findMany({
       take: 5,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { date: 'desc' },
       include: { product: true, operation: true }
     });
 

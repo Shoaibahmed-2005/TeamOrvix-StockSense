@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react"
 import { Package, ListOrdered, ArrowDownToLine, ArrowUpFromLine, AlertCircle } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import { Badge } from "@/components/ui/badge"
+import { useQuery } from "@tanstack/react-query"
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<any>({
+  const { data: stats = {
     productsCount: 0,
     categoriesCount: 0,
     pendingReceipts: 0,
@@ -13,21 +13,14 @@ export default function Dashboard() {
     lowStockProducts: [],
     recentMoves: [],
     trend: []
-  })
-
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
+  } } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: async () => {
       const res = await fetch("/api/dashboard/stats")
-      const data = await res.json()
-      setStats(data)
-    } catch (e) {
-      console.error(e)
+      if (!res.ok) throw new Error("Failed to fetch")
+      return res.json()
     }
-  }
+  })
 
   const statCards = [
     {

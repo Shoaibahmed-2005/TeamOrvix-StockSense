@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Search, Edit2, Check, X } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
@@ -11,22 +11,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useQuery } from "@tanstack/react-query"
 
 export default function StockList() {
-  const [stock, setStock] = useState<any[]>([])
   const [search, setSearch] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editQty, setEditQty] = useState<number>(0)
 
-  useEffect(() => {
-    fetchStock()
-  }, [])
-
-  const fetchStock = async () => {
-    const res = await fetch("/api/stock")
-    const data = await res.json()
-    setStock(data)
-  }
+  const { data: stock = [], refetch: fetchStock } = useQuery({
+    queryKey: ["stock"],
+    queryFn: async () => {
+      const res = await fetch("/api/stock")
+      return res.json()
+    }
+  })
 
   const startEdit = (s: any) => {
     setEditingId(s.id)
@@ -62,7 +60,7 @@ export default function StockList() {
     }
   }
 
-  const filtered = stock.filter(s => 
+  const filtered = stock.filter((s: any) => 
     s.product.name.toLowerCase().includes(search.toLowerCase()) || 
     s.product.sku.toLowerCase().includes(search.toLowerCase()) ||
     s.location.name.toLowerCase().includes(search.toLowerCase())
@@ -102,7 +100,7 @@ export default function StockList() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((s) => {
+              filtered.map((s: any) => {
                 const available = s.quantity - s.reservedQuantity
                 const isEditing = editingId === s.id
 

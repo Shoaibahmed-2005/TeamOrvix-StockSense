@@ -23,35 +23,40 @@ import MoveHistory from "./pages/operations/MoveHistory"
 import Warehouses from "./pages/settings/Warehouses"
 import Locations from "./pages/settings/Locations"
 import Contacts from "./pages/settings/Contacts"
+import Profile from "./pages/settings/Profile"
 import { io } from "socket.io-client"
 import { useEffect } from "react"
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query"
 
 export const socket = io(import.meta.env.VITE_API_URL || "http://localhost:3001", {
   withCredentials: true,
 })
 
+const queryClient = new QueryClient()
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const queryClient = useQueryClient();
   
   // Real-time sync listener
   useEffect(() => {
     if (!user) return;
     
     socket.on("stock-update", () => {
-      // Basic implementation: reload page on stock update
-      // In a real app we would invalidate react-query caches
-      // window.location.reload(); 
+      queryClient.invalidateQueries({ queryKey: ["stock"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     socket.on("operation-update", () => {
-      // window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ["operations"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     });
 
     return () => {
       socket.off("stock-update");
       socket.off("operation-update");
     };
-  }, [user]);
+  }, [user, queryClient]);
 
   if (loading) return <div>Loading...</div>; // Could be a nicer spinner
   if (!user) return <Navigate to="/login" replace />;
@@ -60,7 +65,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<AuthLayout />}>
@@ -86,6 +92,7 @@ function App() {
             <Route path="settings/warehouses" element={<Warehouses />} />
             <Route path="settings/locations" element={<Locations />} />
             <Route path="settings/contacts" element={<Contacts />} />
+            <Route path="settings/profile" element={<Profile />} />
           </Route>
           
           {/* Default route for now redirects to login */}
@@ -93,6 +100,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </QueryClientProvider>
   )
 }
 
