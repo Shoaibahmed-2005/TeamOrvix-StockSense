@@ -36,12 +36,12 @@
 - ✅ Stock view (Quantity, Reserved, Available)
 - ✅ Inline stock update (creates ADJUSTMENT operation)
 
-## ⏳ M4 — Operations Engine (Server)
+## ✅ M4 — Operations Engine (Server)
 - ✅ Atomic reference sequences generation via `UPDATE ... RETURNING`
 - ✅ Stock quant row locking via `SELECT ... FOR UPDATE`
 - ✅ Never-negative stock guard with CHECK constraint `quantity >= 0`
-- ⏳ Status transition enforcement
-- ⏳ Receipt validate, Delivery confirm/validate, Internal transfer, Adjustment, Cancel
+- ✅ Status transition enforcement
+- ✅ Receipt validate, Delivery confirm/validate, Internal transfer, Adjustment, Cancel
 
 ## ⏳ M5 — Receipts + Deliveries UI
 (Not started)
