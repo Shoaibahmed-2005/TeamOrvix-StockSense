@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useForm } from "react-hook-form"
+import SettingsTabs from "@/components/layout/SettingsTabs"
 
 export default function Locations() {
   const queryClient = useQueryClient()
@@ -101,8 +102,8 @@ export default function Locations() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Locations</h2>
+      <SettingsTabs />
+      <div className="flex items-center justify-end">
         <Button onClick={handleAddNew} className="gap-2">
           <Plus className="h-4 w-4" /> Add Location
         </Button>

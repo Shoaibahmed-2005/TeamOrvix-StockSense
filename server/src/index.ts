@@ -13,7 +13,7 @@ import { stockRouter } from './routes/stock.js';
 import { operationsRouter } from './routes/operations.js';
 import { movesRouter } from './routes/moves.js';
 import { dashboardRouter } from './routes/dashboard.js';
-// import { notificationsRouter } from './routes/notifications.js';
+import { notificationsRouter } from './routes/notifications.js';
 // import { meRouter } from './routes/me.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -53,7 +53,7 @@ app.use('/api/stock', stockRouter);
 app.use('/api/operations', operationsRouter);
 app.use('/api/moves', movesRouter);
 app.use('/api/dashboard', dashboardRouter);
-// app.use('/api/notifications', notificationsRouter);
+app.use('/api/notifications', notificationsRouter);
 // app.use('/api/me', meRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────

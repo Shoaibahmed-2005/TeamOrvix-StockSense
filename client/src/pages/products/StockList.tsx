@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { QK, invalidateInventory } from "@/lib/queryKeys"
+import StockTabs from "@/components/layout/StockTabs"
 
 export default function StockList() {
   const [search, setSearch] = useState("")
@@ -102,6 +103,7 @@ export default function StockList() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
+      <StockTabs />
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative w-64">

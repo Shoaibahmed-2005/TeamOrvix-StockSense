@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select"
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import StockTabs from "@/components/layout/StockTabs"
 
 export default function ProductsList() {
   const [search, setSearch] = useState("")
@@ -117,6 +118,7 @@ export default function ProductsList() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
+      <StockTabs />
       <div className="flex items-center justify-between">
         <div className="relative w-72">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

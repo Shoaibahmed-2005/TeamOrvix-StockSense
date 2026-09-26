@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import StockTabs from "@/components/layout/StockTabs"
 
 export default function CategoriesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -77,6 +78,7 @@ export default function CategoriesList() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
+      <StockTabs />
       <div className="flex items-center justify-end">
         <Button onClick={handleAddNew}>
           <Plus className="mr-2 h-4 w-4" /> Add Category
