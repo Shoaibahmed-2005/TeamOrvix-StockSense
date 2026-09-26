@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Prisma
+prisma/migrations/*/migration.sql.bak
+
+# Test results
+test-results/
+playwright-report/
+coverage/
+.vitest-cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Misc
+*.tsbuildinfo
